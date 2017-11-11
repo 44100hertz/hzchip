@@ -1,3 +1,3 @@
 all:
 	mkdir -p bin/
-	clang *.c -o bin/test
+	clang *.c -std=c99 -Wall -lSDL2 -lepoxy -o bin/test
