@@ -5,5 +5,5 @@ struct mem {
 	GLfloat bg_col[3];
 };
 
-void video_draw(void fn(struct mem*));
+void video_draw(void fn(struct mem*, void*), void *data);
 void video_init(void);
