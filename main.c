@@ -4,12 +4,13 @@
 
 #include "video.h"
 
-void rotate_hue(struct video_mem *mem, void *data) {
+static void rotate_hue(struct video_mem *mem, void *data) {
 	float hue = *(float*)data;
+	const float TAU_3 = acos(-1.0) * 2.0 / 3.0;
 	mem->bg_col = (struct color){
-		sin(hue + (0.0/3.0)) / 2.0 + 0.5,
-		sin(hue + (1.0/3.0)) / 2.0 + 0.5,
-		sin(hue + (2.0/3.0)) / 2.0 + 0.5,
+		sin(hue + TAU_3 * 0.0) / 2.0 + 0.5,
+		sin(hue + TAU_3 * 1.0) / 2.0 + 0.5,
+		sin(hue + TAU_3 * 2.0) / 2.0 + 0.5,
 		1.0,
 	};
 }
