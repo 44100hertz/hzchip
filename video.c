@@ -6,7 +6,7 @@
 #include "file.h"
 
 static int draw_thread(void *data);
-static GLuint load_shader(const char *filename);
+static GLuint load_shader(const char *filename, GLenum kind);
 
 static SDL_mutex *mem_mutex = 0;
 static struct video_mem mem;
@@ -39,9 +39,13 @@ static int draw_thread(void *data) {
 	SDL_GL_MakeCurrent(window, context);
 	SDL_GL_SetSwapInterval(1);
 
+	/* Enable shader */
 	GLuint program = glCreateProgram();
-	GLuint fragment = load_shader("fragment.glsl");
+	GLuint vertex = load_shader("vertex.glsl", GL_VERTEX_SHADER);
+	if(!vertex) return 1;
+	GLuint fragment = load_shader("fragment.glsl", GL_FRAGMENT_SHADER);
 	if(!fragment) return 1;
+	glAttachShader(program, vertex);
 	glAttachShader(program, fragment);
 	glLinkProgram(program);
 	glUseProgram(program);
@@ -55,12 +59,15 @@ static int draw_thread(void *data) {
 		SDL_UnlockMutex(mem_mutex);
 		SDL_GL_SwapWindow(window);
 	}
+
+	glDeleteShader(vertex);
+	glDeleteShader(fragment);
 }
 
-static GLuint load_shader(const char *filename) {
+static GLuint load_shader(const char *filename, GLenum kind) {
 	const char *source = file_to_string(filename);
 
-	GLuint shader = glCreateShader(GL_FRAGMENT_SHADER);
+	GLuint shader = glCreateShader(kind);
 	glShaderSource(shader, 1, &source, NULL);
 	glCompileShader(shader);
 
