@@ -23,8 +23,8 @@ static int update_loop()
 	static double next_frame = 0;
 
 	SDL_PumpEvents();
-	while(SDL_PollEvent(&e)) {
-		switch(e.type) {
+	while (SDL_PollEvent(&e)) {
+		switch (e.type) {
 		case SDL_QUIT:
 			return 0;
 		}
@@ -34,8 +34,9 @@ static int update_loop()
 	video_draw(rotate_hue, &hue);
 
 	next_frame += frame_len;
-	if(next_frame > SDL_GetTicks()) {
-		SDL_Delay(next_frame - SDL_GetTicks());
+	long ticks = SDL_GetTicks();
+	if (next_frame > ticks) {
+		SDL_Delay(next_frame - ticks);
 	}
 
 	return 1;
@@ -44,6 +45,6 @@ static int update_loop()
 int main() {
 	SDL_Init(0);
 	video_init();
-	while(update_loop());
+	while (update_loop()) {}
 	SDL_Quit();
 }

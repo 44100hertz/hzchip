@@ -50,7 +50,9 @@ static int draw_thread(void *data)
 	GLuint program = glCreateProgram();
 	GLuint vertex = load_shader("vertex.glsl", GL_VERTEX_SHADER);
 	GLuint fragment = load_shader("fragment.glsl", GL_FRAGMENT_SHADER);
-	if(!vertex || !fragment) return 1;
+	if (!vertex || !fragment) {
+		return 1;
+	}
 	glAttachShader(program, vertex);
 	glAttachShader(program, fragment);
 	glLinkProgram(program);
