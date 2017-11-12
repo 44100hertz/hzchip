@@ -4,11 +4,14 @@
 
 #include "video.h"
 
-void rotate_hue(struct mem *mem, void *data) {
+void rotate_hue(struct video_mem *mem, void *data) {
 	float hue = *(float*)data;
-	mem->bg_col[0] = sin(hue + (0.0/3.0)) / 2.0 + 0.5;
-	mem->bg_col[1] = sin(hue + (1.0/3.0)) / 2.0 + 0.5;
-	mem->bg_col[2] = sin(hue + (2.0/3.0)) / 2.0 + 0.5;
+	mem->bg_col = (struct color){
+		sin(hue + (0.0/3.0)) / 2.0 + 0.5,
+		sin(hue + (1.0/3.0)) / 2.0 + 0.5,
+		sin(hue + (2.0/3.0)) / 2.0 + 0.5,
+		1.0,
+	};
 }
 
 static int update_loop() {

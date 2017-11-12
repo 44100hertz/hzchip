@@ -7,10 +7,10 @@
 static int draw_loop(void *data);
 
 static SDL_mutex *mem_mutex = 0;
-static struct mem mem;
+static struct video_mem mem;
 static SDL_Window *window;
 
-void video_draw(void fn (struct mem*, void*), void *data) {
+void video_draw(void fn (struct video_mem*, void*), void *data) {
 	SDL_LockMutex(mem_mutex);
 	fn(&mem, data);
 	SDL_UnlockMutex(mem_mutex);
@@ -39,7 +39,7 @@ static int draw_loop(void *data) {
 
 	for(;;) {
 		SDL_LockMutex(mem_mutex);
-		glClearColor(mem.bg_col[0], mem.bg_col[1], mem.bg_col[2], 1.0);
+		glClearColor(mem.bg_col.r, mem.bg_col.g, mem.bg_col.b, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT);
 		SDL_UnlockMutex(mem_mutex);
 		SDL_GL_SwapWindow(window);
