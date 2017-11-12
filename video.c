@@ -5,6 +5,9 @@
 #include "video.h"
 #include "file.h"
 
+#define RES_X 240
+#define RES_Y 160
+
 static int draw_thread(void *data);
 static GLuint load_shader(const char *filename, GLenum kind);
 
@@ -61,7 +64,7 @@ static int draw_thread(void *data)
 	glDeleteShader(vertex);
 	glDeleteShader(fragment);
 
-	GLfloat verts[8] = {-1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0};
+	GLfloat verts[8] = {0, 0, RES_X, 0, 0, RES_Y, RES_X, RES_Y};
 	GLuint vbo;
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -69,6 +72,9 @@ static int draw_thread(void *data)
 	glVertexAttribPointer(0, 2, GL_FLOAT, 0, 0, NULL);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+
+	GLint screen_size = glGetUniformLocation(program, "screen_size");
+	glUniform2f(screen_size, RES_X, RES_Y);
 
 	GLint win_size = glGetUniformLocation(program, "win_size");
 	GLint bg_color = glGetUniformLocation(program, "bg_color");
@@ -104,7 +110,7 @@ static GLuint load_shader(const char *filename, GLenum kind)
 	GLchar *log;
 	GLint len;
 	glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &len);
-	if(len) {
+	if (len) {
 		log = malloc(len);
 		glGetShaderInfoLog(shader, len, NULL, log);
 		printf("%s:\n\t%s", filename, log);
