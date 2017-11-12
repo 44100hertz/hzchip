@@ -12,13 +12,15 @@ static SDL_mutex *mem_mutex = 0;
 static struct video_mem mem;
 static SDL_Window *window;
 
-void video_draw(void fn (struct video_mem*, void*), void *data) {
+void video_draw(void fn (struct video_mem*, void*), void *data)
+{
 	SDL_LockMutex(mem_mutex);
 	fn(&mem, data);
 	SDL_UnlockMutex(mem_mutex);
 }
 
-void video_init() {
+void video_init()
+{
 	SDL_InitSubSystem(SDL_INIT_VIDEO);
 
 	assert(!mem_mutex);
@@ -28,7 +30,8 @@ void video_init() {
 	SDL_CreateThread(draw_thread, "drawing", NULL);
 }
 
-static int draw_thread(void *data) {
+static int draw_thread(void *data)
+{
 	window = SDL_CreateWindow(
 		 "it works",
 		 SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
@@ -64,7 +67,8 @@ static int draw_thread(void *data) {
 	glDeleteShader(fragment);
 }
 
-static GLuint load_shader(const char *filename, GLenum kind) {
+static GLuint load_shader(const char *filename, GLenum kind)
+{
 	const char *source = file_to_string(filename);
 
 	GLuint shader = glCreateShader(kind);

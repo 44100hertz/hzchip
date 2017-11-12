@@ -4,7 +4,8 @@
 
 #include "video.h"
 
-static void rotate_hue(struct video_mem *mem, void *data) {
+static void rotate_hue(struct video_mem *mem, void *data)
+{
 	float hue = *(float*)data;
 	const float TAU_3 = acos(-1.0) * 2.0 / 3.0;
 	mem->bg_col = (struct color){
@@ -15,7 +16,8 @@ static void rotate_hue(struct video_mem *mem, void *data) {
 	};
 }
 
-static int update_loop() {
+static int update_loop()
+{
 	SDL_Event e;
 	const double frame_len = 1000.0/60.0;
 	static double next_frame = 0;
@@ -38,7 +40,8 @@ static int update_loop() {
 	return 1;
 }
 
-int main() {
+int main()
+{
 	SDL_Init(0);
 	video_init();
 	while(update_loop());
