@@ -54,7 +54,7 @@ static int draw_thread(void *data)
 	glDeleteShader(vertex);
 	glDeleteShader(fragment);
 
-	GLfloat verts[6] = {-1.0, -1.0, -1.0, 1.0, 1.0, -1.0};
+	GLfloat verts[8] = {-1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0};
 	GLuint vbo;
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -63,14 +63,18 @@ static int draw_thread(void *data)
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 
+	GLuint win_size = glGetUniformLocation(program, "win_size");
+	GLuint bg_color = glGetUniformLocation(program, "bg_color");
+
 	for (;;) {
 		SDL_LockMutex(mem_mutex);
 
 		int win_w, win_h;
 		SDL_GetWindowSize(window, &win_w, &win_h);
 		glViewport(0, 0, win_w, win_h);
-		glClearColor(mem.bg_col.r, mem.bg_col.g, mem.bg_col.b, 1.0);
-		glClear(GL_COLOR_BUFFER_BIT);
+
+		glUniform2f(win_size, win_w, win_h);
+		glUniform3f(bg_color, mem.bg_col.r, mem.bg_col.g, mem.bg_col.b);
 
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
