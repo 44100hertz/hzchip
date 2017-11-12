@@ -42,29 +42,41 @@ static int draw_thread(void *data)
 	SDL_GL_MakeCurrent(window, context);
 	SDL_GL_SetSwapInterval(1);
 
-	/* Enable shader */
 	GLuint program = glCreateProgram();
 	GLuint vertex = load_shader("vertex.glsl", GL_VERTEX_SHADER);
-	if(!vertex) return 1;
 	GLuint fragment = load_shader("fragment.glsl", GL_FRAGMENT_SHADER);
-	if(!fragment) return 1;
+	if(!vertex || !fragment) return 1;
 	glAttachShader(program, vertex);
 	glAttachShader(program, fragment);
 	glLinkProgram(program);
 	glUseProgram(program);
 
+	glDeleteShader(vertex);
+	glDeleteShader(fragment);
+
+	GLfloat verts[6] = {-1.0, -1.0, -1.0, 1.0, 1.0, -1.0};
+	GLuint vbo;
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 2, GL_FLOAT, 0, 0, NULL);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+
 	for (;;) {
 		SDL_LockMutex(mem_mutex);
 
+		int win_w, win_h;
+		SDL_GetWindowSize(window, &win_w, &win_h);
+		glViewport(0, 0, win_w, win_h);
 		glClearColor(mem.bg_col.r, mem.bg_col.g, mem.bg_col.b, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT);
+
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 		SDL_UnlockMutex(mem_mutex);
 		SDL_GL_SwapWindow(window);
 	}
-
-	glDeleteShader(vertex);
-	glDeleteShader(fragment);
 }
 
 static GLuint load_shader(const char *filename, GLenum kind)

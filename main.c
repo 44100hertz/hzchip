@@ -40,8 +40,7 @@ static int update_loop()
 	return 1;
 }
 
-int main()
-{
+int main() {
 	SDL_Init(0);
 	video_init();
 	while(update_loop());

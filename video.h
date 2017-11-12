@@ -5,7 +5,6 @@ struct color {
 };
 
 struct video_mem {
-	int window_scale;
 	struct color bg_col;
 };
 
