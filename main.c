@@ -34,8 +34,9 @@ static int update_loop()
 	video_draw(rotate_hue, &hue);
 
 	next_frame += frame_len;
-	signed delay = next_frame - SDL_GetTicks();
-	if(delay > 0) SDL_Delay(delay);
+	if(next_frame < SDL_GetTicks()) {
+		SDL_Delay(next_frame - SDL_GetTicks());
+	}
 
 	return 1;
 }

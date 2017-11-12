@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "file.h"
+
 const char *file_to_string(const char *filename)
 {
 	// count lines

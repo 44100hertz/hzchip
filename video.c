@@ -38,9 +38,14 @@ static int draw_thread(void *data)
 		 800, 600,
 		 SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
 
+	SDL_GL_SetSwapInterval(1);
 	SDL_GLContext context = SDL_GL_CreateContext(window);
 	SDL_GL_MakeCurrent(window, context);
-	SDL_GL_SetSwapInterval(1);
+
+	{
+		int v = epoxy_gl_version();
+		printf("Initialized GL Version: %d.%d\n", v/10, v%10);
+	}
 
 	GLuint program = glCreateProgram();
 	GLuint vertex = load_shader("vertex.glsl", GL_VERTEX_SHADER);
@@ -63,8 +68,8 @@ static int draw_thread(void *data)
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 
-	GLuint win_size = glGetUniformLocation(program, "win_size");
-	GLuint bg_color = glGetUniformLocation(program, "bg_color");
+	GLint win_size = glGetUniformLocation(program, "win_size");
+	GLint bg_color = glGetUniformLocation(program, "bg_color");
 
 	for (;;) {
 		SDL_LockMutex(mem_mutex);
