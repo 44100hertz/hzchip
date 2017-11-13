@@ -15,6 +15,8 @@ static SDL_mutex *mem_mutex = 0;
 static struct video_mem mem;
 static SDL_Window *window;
 
+static char quit = 0;
+
 void video_draw(void fn (struct video_mem*, void*), void *data)
 {
 	SDL_LockMutex(mem_mutex);
@@ -36,8 +38,7 @@ void video_init()
 void video_quit()
 {
 	SDL_LockMutex(mem_mutex);
-	mem.quit = 1;
-	SDL_DestroyWindow(window);
+	quit = 1;
 	SDL_UnlockMutex(mem_mutex);
 }
 
@@ -53,10 +54,12 @@ static int draw_thread(void *data)
 	SDL_GLContext context = SDL_GL_CreateContext(window);
 	SDL_GL_MakeCurrent(window, context);
 
+#ifdef DEBUG
 	{
 		int v = epoxy_gl_version();
 		printf("Initialized GL Version: %d.%d\n", v/10, v%10);
 	}
+#endif
 
 	GLuint program = glCreateProgram();
 	GLuint vertex = load_shader("vertex.glsl", GL_VERTEX_SHADER);
@@ -89,7 +92,7 @@ static int draw_thread(void *data)
 
 	for (;;) {
 		SDL_LockMutex(mem_mutex);
-		if(mem.quit) return 0;
+		if(quit) return 0;
 
 		int win_w, win_h;
 		SDL_GetWindowSize(window, &win_w, &win_h);

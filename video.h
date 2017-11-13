@@ -5,7 +5,6 @@ struct color {
 };
 
 struct video_mem {
-	char quit;
 	struct color bg_col;
 };
 
