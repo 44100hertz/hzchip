@@ -33,6 +33,14 @@ void video_init()
 	SDL_CreateThread(draw_thread, "drawing", NULL);
 }
 
+void video_quit()
+{
+	SDL_LockMutex(mem_mutex);
+	mem.quit = 1;
+	SDL_DestroyWindow(window);
+	SDL_UnlockMutex(mem_mutex);
+}
+
 static int draw_thread(void *data)
 {
 	window = SDL_CreateWindow(
@@ -81,6 +89,7 @@ static int draw_thread(void *data)
 
 	for (;;) {
 		SDL_LockMutex(mem_mutex);
+		if(mem.quit) return 0;
 
 		int win_w, win_h;
 		SDL_GetWindowSize(window, &win_w, &win_h);

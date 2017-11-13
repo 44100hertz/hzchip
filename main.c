@@ -46,5 +46,6 @@ int main() {
 	SDL_Init(0);
 	video_init();
 	while (update_loop()) {}
+	video_quit();
 	SDL_Quit();
 }
