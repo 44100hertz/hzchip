@@ -8,42 +8,37 @@
 #define RES_X 240
 #define RES_Y 160
 
-static int draw_thread(void *data);
 static GLuint load_shader(const char *filename, GLenum kind);
 
-static SDL_mutex *mem_mutex = 0;
 static struct video_mem mem;
 static SDL_Window *window;
 
-static char quit = 0;
+static GLint win_size, bg_color;
 
 void video_draw(void fn (struct video_mem*, void*), void *data)
 {
-	SDL_LockMutex(mem_mutex);
 	fn(&mem, data);
-	SDL_UnlockMutex(mem_mutex);
+}
+
+void video_sync()
+{
+	int win_w, win_h;
+
+	SDL_GetWindowSize(window, &win_w, &win_h);
+	glViewport(0, 0, win_w, win_h);
+
+	glUniform2f(win_size, win_w, win_h);
+	glUniform3f(bg_color, mem.bg_col.r, mem.bg_col.g, mem.bg_col.b);
+
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	SDL_GL_SwapWindow(window);
 }
 
 void video_init()
 {
 	SDL_InitSubSystem(SDL_INIT_VIDEO);
-
-	assert(!mem_mutex);
-	mem_mutex = SDL_CreateMutex();
 	memset(&mem, 0, sizeof(mem));
 
-	SDL_CreateThread(draw_thread, "drawing", NULL);
-}
-
-void video_quit()
-{
-	SDL_LockMutex(mem_mutex);
-	quit = 1;
-	SDL_UnlockMutex(mem_mutex);
-}
-
-static int draw_thread(void *data)
-{
 	window = SDL_CreateWindow(
 		 "it works",
 		 SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
@@ -65,7 +60,7 @@ static int draw_thread(void *data)
 	GLuint vertex = load_shader("vertex.glsl", GL_VERTEX_SHADER);
 	GLuint fragment = load_shader("fragment.glsl", GL_FRAGMENT_SHADER);
 	if (!vertex || !fragment) {
-		return 1;
+		return;
 	}
 	glAttachShader(program, vertex);
 	glAttachShader(program, fragment);
@@ -87,25 +82,12 @@ static int draw_thread(void *data)
 	GLint screen_size = glGetUniformLocation(program, "screen_size");
 	glUniform2f(screen_size, RES_X, RES_Y);
 
-	GLint win_size = glGetUniformLocation(program, "win_size");
-	GLint bg_color = glGetUniformLocation(program, "bg_color");
+	win_size = glGetUniformLocation(program, "win_size");
+	bg_color = glGetUniformLocation(program, "bg_color");
+}
 
-	for (;;) {
-		SDL_LockMutex(mem_mutex);
-		if(quit) return 0;
-
-		int win_w, win_h;
-		SDL_GetWindowSize(window, &win_w, &win_h);
-		glViewport(0, 0, win_w, win_h);
-
-		glUniform2f(win_size, win_w, win_h);
-		glUniform3f(bg_color, mem.bg_col.r, mem.bg_col.g, mem.bg_col.b);
-
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-		SDL_UnlockMutex(mem_mutex);
-		SDL_GL_SwapWindow(window);
-	}
+void video_quit()
+{
 }
 
 static GLuint load_shader(const char *filename, GLenum kind)

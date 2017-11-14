@@ -19,9 +19,6 @@ static void rotate_hue(struct video_mem *mem, void *data)
 static int update_loop()
 {
 	SDL_Event e;
-	const double frame_len = 1000.0/60.0;
-	static double next_frame = 0;
-
 	SDL_PumpEvents();
 	while (SDL_PollEvent(&e)) {
 		switch (e.type) {
@@ -32,12 +29,7 @@ static int update_loop()
 
 	float hue = (float)SDL_GetTicks() / 1000.0;
 	video_draw(rotate_hue, &hue);
-
-	next_frame += frame_len;
-	long ticks = SDL_GetTicks();
-	if (next_frame > ticks) {
-		SDL_Delay(next_frame - ticks);
-	}
+	video_sync();
 
 	return 1;
 }

@@ -9,5 +9,6 @@ struct video_mem {
 };
 
 void video_draw(void fn(struct video_mem*, void*), void *data);
+void video_sync();
 void video_init(void);
 void video_quit(void);
