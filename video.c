@@ -15,9 +15,9 @@ static SDL_Window *window;
 
 static GLint win_size, bg_color;
 
-void video_draw(void fn (struct video_mem*, void*), void *data)
+struct video_mem *const video_mem()
 {
-	fn(&mem, data);
+	return &mem;
 }
 
 void video_sync()

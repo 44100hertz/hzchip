@@ -8,7 +8,7 @@ struct video_mem {
 	struct color bg_col;
 };
 
-void video_draw(void fn(struct video_mem*, void*), void *data);
+struct video_mem *const video_mem();
 void video_sync();
 void video_init(void);
 void video_quit(void);
