@@ -13,7 +13,9 @@ static GLuint load_shader(const char *filename, GLenum kind);
 static struct video_mem mem;
 static SDL_Window *window;
 
-static GLint win_size, bg_color;
+static GLfloat verts[8] = {0, 0, RES_X, 0, 0, RES_Y, RES_X, RES_Y};
+static GLuint program, vbo, texo;
+static GLint win_size, bg_color, bitmap;
 
 struct video_mem *const video_mem()
 {
@@ -27,9 +29,11 @@ void video_sync()
 	SDL_GetWindowSize(window, &win_w, &win_h);
 	glViewport(0, 0, win_w, win_h);
 
+	glUseProgram(program);
 	glUniform2f(win_size, win_w, win_h);
 	glUniform3f(bg_color, mem.bg_col.r, mem.bg_col.g, mem.bg_col.b);
 
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	SDL_GL_SwapWindow(window);
 }
@@ -56,7 +60,7 @@ void video_init()
 	}
 #endif
 
-	GLuint program = glCreateProgram();
+	program = glCreateProgram();
 	GLuint vertex = load_shader("vertex.glsl", GL_VERTEX_SHADER);
 	GLuint fragment = load_shader("fragment.glsl", GL_FRAGMENT_SHADER);
 	if (!vertex || !fragment) {
@@ -70,14 +74,25 @@ void video_init()
 	glDeleteShader(vertex);
 	glDeleteShader(fragment);
 
-	GLfloat verts[8] = {0, 0, RES_X, 0, 0, RES_Y, RES_X, RES_Y};
-	GLuint vbo;
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 2, GL_FLOAT, 0, 0, NULL);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+
+	glGenTextures(1, &texo);
+	glBindTexture(GL_TEXTURE_2D, texo);
+	static GLbyte rando[64*64];
+	for(int i=0; i<sizeof(rando); ++i) rando[i] = rand();
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 64, 64, 0, GL_RED, GL_BYTE, rando);
+	bitmap = glGetUniformLocation(program, "bitmap");
+	glUniform1i(bitmap, 0);
+
+#ifdef DEBUG
+	GLenum err = glGetError();
+	if(err) printf("%x\n", err);
+#endif
 
 	GLint screen_size = glGetUniformLocation(program, "screen_size");
 	glUniform2f(screen_size, RES_X, RES_Y);
