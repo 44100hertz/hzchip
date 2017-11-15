@@ -8,13 +8,9 @@ uniform sampler2D bitmap;
 void main (void)  
 {     
 	// Divide the position input into a number of steps equal to pixel res
-//	vec2 pixel_pos = floor(gl_FragCoord.xy / win_size * screen_size);
-	vec2 pixel_pos = gl_FragCoord.xy;
-	vec2 pos_quant = pixel_pos / screen_size;
+	vec2 pixel_pos = gl_FragCoord.xy / win_size * screen_size;
+	vec2 pos_quant = floor(pixel_pos * (bg_color.rg + 0.1) + bg_color.b * 100) / screen_size;
 
-	vec2 off_pos = pixel_pos + bg_color.rg * 1000.0;
-	float circles = sin(off_pos.x / 10.0) * cos(off_pos.y / 10.0);
-
-//	gl_FragColor = vec4(bg_color * pos_quant.xxy * circles, 1.0);
-	gl_FragColor = texture2D(bitmap, pos_quant) + 0.5;
+	vec3 color = texture2D(bitmap, pos_quant).rrr * bg_color;
+	gl_FragColor = vec4(color, 1.0);
 }

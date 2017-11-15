@@ -83,8 +83,10 @@ void video_init()
 
 	glGenTextures(1, &texo);
 	glBindTexture(GL_TEXTURE_2D, texo);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	static GLbyte rando[64*64];
-	for(int i=0; i<sizeof(rando); ++i) rando[i] = rand();
+	for(int i=0; i<sizeof(rando); ++i) rando[i] = rand()>>16;
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 64, 64, 0, GL_RED, GL_BYTE, rando);
 	bitmap = glGetUniformLocation(program, "bitmap");
 	glUniform1i(bitmap, 0);
