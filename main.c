@@ -7,7 +7,7 @@
 static void rotate_hue(float hue)
 {
 	const float TAU_3 = acos(-1.0) * 2.0 / 3.0;
-	video_mem()->bg_col = (struct color){
+	video_mem()->palette[0] = (struct color){
 		sin(hue + TAU_3 * 0.0) / 2.0 + 0.5,
 		sin(hue + TAU_3 * 1.0) / 2.0 + 0.5,
 		sin(hue + TAU_3 * 2.0) / 2.0 + 0.5,
@@ -36,6 +36,7 @@ static int update_loop()
 int main() {
 	SDL_Init(0);
 	video_init();
+	video_loadbmp("res/text1.bmp");
 	while (update_loop()) {}
 	video_quit();
 	SDL_Quit();

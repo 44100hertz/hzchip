@@ -9,13 +9,14 @@
 #define RES_Y 160
 
 static GLuint load_shader(const char *filename, GLenum kind);
+static struct color SDL_to_float(SDL_Color col);
 
 static struct video_mem mem;
 static SDL_Window *window;
 
 static GLfloat verts[8] = {0, 0, RES_X, 0, 0, RES_Y, RES_X, RES_Y};
 static GLuint program, vbo, texo;
-static GLint win_size, bg_color, bitmap;
+static GLint win_size, palette, bitmap;
 
 struct video_mem *const video_mem()
 {
@@ -30,8 +31,9 @@ void video_sync()
 	glViewport(0, 0, win_w, win_h);
 
 	glUseProgram(program);
+
 	glUniform2f(win_size, win_w, win_h);
-	glUniform3f(bg_color, mem.bg_col.r, mem.bg_col.g, mem.bg_col.b);
+	glUniform4fv(palette, 256, (GLfloat*)mem.palette);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -85,9 +87,6 @@ void video_init()
 	glBindTexture(GL_TEXTURE_2D, texo);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	static GLbyte rando[64*64];
-	for(int i=0; i<sizeof(rando); ++i) rando[i] = rand()>>16;
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 64, 64, 0, GL_RED, GL_BYTE, rando);
 	bitmap = glGetUniformLocation(program, "bitmap");
 	glUniform1i(bitmap, 0);
 
@@ -100,11 +99,41 @@ void video_init()
 	glUniform2f(screen_size, RES_X, RES_Y);
 
 	win_size = glGetUniformLocation(program, "win_size");
-	bg_color = glGetUniformLocation(program, "bg_color");
+	palette = glGetUniformLocation(program, "palette");
 }
 
 void video_quit()
 {
+}
+
+void video_loadbmp(const char *path)
+{
+	SDL_Surface *img = SDL_LoadBMP(path);
+	if(!img) {
+		fprintf(stderr, "%s", SDL_GetError());
+		return;
+	}
+	SDL_Palette *pal = img->format->palette;
+	if(!pal) {
+		fprintf(stderr, "Attempt to use non-indexed image\n");
+		return;
+	}
+	memcpy(mem.bitmap, img->pixels, sizeof(mem.bitmap));
+	for(int i=0; i<256; ++i) {
+		mem.palette[i] = SDL_to_float(pal->colors[i]);
+	}
+	glBindTexture(GL_TEXTURE_2D, texo);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 64, 64, 0, GL_RED, GL_BYTE, mem.bitmap);
+}
+
+static struct color SDL_to_float(SDL_Color col)
+{
+	return (struct color){
+		((GLfloat)col.r) / 256.0,
+		((GLfloat)col.g) / 256.0,
+		((GLfloat)col.b) / 256.0,
+		((GLfloat)col.a) / 256.0,
+	};
 }
 
 static GLuint load_shader(const char *filename, GLenum kind)

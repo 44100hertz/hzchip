@@ -5,11 +5,12 @@ struct color {
 };
 
 struct video_mem {
-	struct color bg_col;
-	GLuint bitmap;
+	struct color palette[256];
+	GLbyte bitmap[64*64];
 };
 
 struct video_mem *const video_mem();
 void video_sync();
 void video_init(void);
 void video_quit(void);
+void video_loadbmp(const char *path);
