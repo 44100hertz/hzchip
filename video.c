@@ -5,8 +5,8 @@
 #include "video.h"
 #include "file.h"
 
-#define RES_X 240
-#define RES_Y 160
+#define RES_X 64
+#define RES_Y 64
 
 static GLuint load_shader(const char *filename, GLenum kind);
 static struct color SDL_to_float(SDL_Color col);
@@ -15,7 +15,7 @@ static struct video_mem mem;
 static SDL_Window *window;
 
 static GLfloat verts[8] = {0, 0, RES_X, 0, 0, RES_Y, RES_X, RES_Y};
-static GLuint program, vbo, texo;
+static GLuint program, vbo;
 static GLint win_size, palette, bitmap;
 
 struct video_mem *const video_mem()
@@ -34,6 +34,7 @@ void video_sync()
 
 	glUniform2f(win_size, win_w, win_h);
 	glUniform4fv(palette, 256, (GLfloat*)mem.palette);
+	glUniform1uiv(bitmap, 64*8, mem.bitmap);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -83,13 +84,6 @@ void video_init()
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 
-	glGenTextures(1, &texo);
-	glBindTexture(GL_TEXTURE_2D, texo);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	bitmap = glGetUniformLocation(program, "bitmap");
-	glUniform1i(bitmap, 0);
-
 #ifdef DEBUG
 	GLenum err = glGetError();
 	if(err) printf("%x\n", err);
@@ -100,6 +94,7 @@ void video_init()
 
 	win_size = glGetUniformLocation(program, "win_size");
 	palette = glGetUniformLocation(program, "palette");
+	bitmap = glGetUniformLocation(program, "bitmap");
 }
 
 void video_quit()
@@ -118,12 +113,14 @@ void video_loadbmp(const char *path)
 		fprintf(stderr, "Attempt to use non-indexed image\n");
 		return;
 	}
-	memcpy(mem.bitmap, img->pixels, sizeof(mem.bitmap));
+	memset(mem.bitmap, 0, sizeof(mem.bitmap));
+	for(int i=0; i<64*64; ++i) {
+		char px = *(char*)&img->pixels[i];
+		mem.bitmap[i/8] |= (px & 15) << ((i%8)*4);
+	}
 	for(int i=0; i<256; ++i) {
 		mem.palette[i] = SDL_to_float(pal->colors[i]);
 	}
-	glBindTexture(GL_TEXTURE_2D, texo);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 64, 64, 0, GL_RED, GL_BYTE, mem.bitmap);
 }
 
 static struct color SDL_to_float(SDL_Color col)
