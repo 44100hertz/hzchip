@@ -1,3 +1,3 @@
-png2bin: png2bin.c
+getpal: getpal.c
 	mkdir -p bin/
-	clang -std=c99 png2bin.c -lpng -o ./bin/png2bin
+	clang -std=c99 getpal.c -lSDL2 -o ./bin/getpal
