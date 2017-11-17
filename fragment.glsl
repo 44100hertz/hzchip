@@ -2,12 +2,19 @@
 
 const uvec2 map_size  = uvec2(32u, 32u);
 const uvec2 tile_size = uvec2(8u, 8u);
-const uint tile_index_mask = (1u << 8u) - 1u;
 
 uniform vec2 win_size, screen_size;
 uniform vec4 palette[256];
-uniform uint bitmap[64*8];
+uniform uint bitmap[8*8*8];
 uniform uint tilemap[map_size.x * map_size.y];
+
+// Tile memory layout:
+// ____ ____ ____ ____ __YX CCCC __II IIII
+// XY = flip; C = color; I = index;
+uint tilemap_get_index(uint tile) { return tile & 63u; }
+uint tilemap_get_color(uint tile) { return (tile >> 16u) & 15u; }
+bool tilemap_get_flipx(uint tile) { return bool(tile & (1u << 16u)); }
+bool tilemap_get_flipy(uint tile) { return bool(tile & (1u << 17u)); }
 
 void main (void)  
 {
@@ -23,15 +30,22 @@ void main (void)
 
 	// Locate pixel within tile
 	uvec2 intile_pos = uvec2(pixel_pos) % tile_size;
+	if (tilemap_get_flipx(tile)) {
+		intile_pos.x = tile_size.x - intile_pos.x - 1u;
+	}
+	if (tilemap_get_flipy(tile)) {
+		intile_pos.y = tile_size.y - intile_pos.y - 1u;
+	}
 	uint intile = uint(intile_pos.x + intile_pos.y * tile_size.x);
 	uint tile_area = tile_size.x * tile_size.y;
-	uint pixel  = tile * tile_area + intile;
+	uint pixel = tilemap_get_index(tile) * tile_area + intile;
 
 	// Unpack pixel from low-depth data
 	const uint bpp = 4u;
 	const uint mask = (1u<<bpp)-1u;
 	const uint bpi = 32u/bpp; // bits per int
-	uint color  = mask & (bitmap[pixel / bpi] >> (bpp * (pixel % bpi)));
+	uint color = mask & (bitmap[pixel / bpi] >> (bpp * (pixel % bpi)));
+	uint color_off = tilemap_get_color(tile) * 16u;
 
-	gl_FragColor = palette[color];
+	gl_FragColor = palette[color + color_off];
 }
