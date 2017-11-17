@@ -5,8 +5,8 @@
 #include "video.h"
 #include "file.h"
 
-#define RES_X 256
-#define RES_Y 256
+#define RES_X 240
+#define RES_Y 160
 
 static GLuint load_shader(const char *filename, GLenum kind);
 static struct video_color SDL_to_float(SDL_Color col);
@@ -16,7 +16,10 @@ static SDL_Window *window;
 
 static GLfloat verts[8] = {0, 0, RES_X, 0, 0, RES_Y, RES_X, RES_Y};
 static GLuint program, vbo;
-static GLint win_size, palette, bitmap, tilemap;
+struct {
+	GLint win_size, viewport, scroll,
+	      palette, bitmap, bpp, tilemap;
+} uniform;
 
 typedef unsigned int uint;
 
@@ -34,10 +37,10 @@ void video_sync()
 
 	glUseProgram(program);
 
-	glUniform2f(win_size, win_w, win_h);
-	glUniform4fv(palette, 256, mem.palette_raw);
-	glUniform1uiv(bitmap, 64*8, mem.bitmap);
-	glUniform1uiv(tilemap, 32*32, mem.tiles_raw);
+	glUniform2f(uniform.win_size, win_w, win_h);
+	glUniform4fv(uniform.palette, 256, mem.palette_raw);
+	glUniform1uiv(uniform.bitmap, 64*8, mem.bitmap);
+	glUniform1uiv(uniform.tilemap, 32*32, mem.tiles_raw);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -92,20 +95,24 @@ void video_init()
 	if(err) printf("%x\n", err);
 #endif
 
-	GLint screen_size = glGetUniformLocation(program, "screen_size");
-	glUniform2f(screen_size, RES_X, RES_Y);
+#define U(name) uniform. name = glGetUniformLocation(program, #name)
+	U(win_size);
+	U(viewport);
+	U(scroll);
+	U(palette);
+	U(bitmap);
+	U(bpp);
+	U(tilemap);
+#undef U
 
-	win_size = glGetUniformLocation(program, "win_size");
-	palette = glGetUniformLocation(program, "palette");
-	bitmap = glGetUniformLocation(program, "bitmap");
-	tilemap = glGetUniformLocation(program, "tilemap");
+	glUniform2f(uniform.viewport, RES_X, RES_Y);
 }
 
 void video_quit()
 {
 }
 
-void video_loadbmp(const char *path)
+void video_loadbmp(const char *path, unsigned int bpp)
 {
 	SDL_Surface *img = SDL_LoadBMP(path);
 	if(!img) {
@@ -118,7 +125,15 @@ void video_loadbmp(const char *path)
 		return;
 	}
 	memset(mem.bitmap, 0, sizeof(mem.bitmap));
-	for(unsigned i=0; i<(img->w * img->h); ++i) {
+
+	const uint mask = (1<<bpp)-1;
+	const uint bpi = 32/bpp; // bits per int
+
+	uint max = img->w * img->h;
+	uint bitmap_max = sizeof(mem.bitmap) * bpi / sizeof(*mem.bitmap);
+
+	if (max > bitmap_max) max = bitmap_max;
+	for(unsigned i=0; i<max; ++i) {
 		// Find actual x and y
 		uint x = i % img->w;
 		uint y = i / img->w;
@@ -128,15 +143,13 @@ void video_loadbmp(const char *path)
 		// Find position within tile
 		uint pos = x%8 + y*8 + (x/8)*64;
 		// Pack into lower bit depth
-		const uint bpp = 4;
-		const uint mask = (1<<bpp)-1;
-		const uint bpi = 32/bpp; // bits per int
 		char px = ((char*)img->pixels)[i];
 		mem.bitmap[pos / bpi] |= (px & mask) << ((pos % bpi) * bpp);
 	}
 	for(int i=0; i<256; ++i) {
 		mem.palette[i] = SDL_to_float(pal->colors[i]);
 	}
+	glUniform1ui(uniform.bpp, bpp);
 }
 
 static struct video_color SDL_to_float(SDL_Color col)

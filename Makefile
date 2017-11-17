@@ -7,4 +7,4 @@ all:
 
 debug:
 	mkdir -p bin/
-	clang *.c -$(CFLAGS) DDEBUG -g $(LFLAGS) -o bin/test
+	clang *.c $(CFLAGS) -DDEBUG -g $(LFLAGS) -o bin/test

@@ -3,9 +3,12 @@
 const uvec2 map_size  = uvec2(32u, 32u);
 const uvec2 tile_size = uvec2(8u, 8u);
 
-uniform vec2 win_size, screen_size;
+uniform vec2 win_size;
+uniform vec2 viewport = vec2(256, 224);
+uniform vec2 scroll;
 uniform vec4 palette[256];
 uniform uint bitmap[8*8*8];
+uniform uint bpp = 4u;
 uniform uint tilemap[map_size.x * map_size.y];
 
 // Tile memory layout:
@@ -19,9 +22,10 @@ bool tilemap_get_flipy(uint tile) { return bool(tile & (1u << 17u)); }
 void main (void)  
 {
 	// Divide the position input into a number of steps equal to pixel res
-	vec2 inv_pos   = vec2(gl_FragCoord.x, win_size.y - gl_FragCoord.y);
-	vec2 pixel_pos = floor(inv_pos / win_size * screen_size);
-	vec2 pos_quant = pixel_pos / screen_size;
+	vec2 scroll_pos = gl_FragCoord.xy + mod(scroll, map_size*tile_size);
+	vec2 inv_pos    = vec2(scroll_pos.x, win_size.y - scroll_pos.y);
+	vec2 pixel_pos  = floor(inv_pos / win_size * viewport);
+	vec2 pos_quant  = pixel_pos / viewport;
 
 	// Locate tile within map
 	uvec2 tile_pos  = uvec2(pixel_pos) / tile_size;
@@ -41,9 +45,8 @@ void main (void)
 	uint pixel = tilemap_get_index(tile) * tile_area + intile;
 
 	// Unpack pixel from low-depth data
-	const uint bpp = 4u;
-	const uint mask = (1u<<bpp)-1u;
-	const uint bpi = 32u/bpp; // bits per int
+	uint mask = (1u<<bpp)-1u;
+	uint bpi = 32u/bpp; // bits per int
 	uint color = mask & (bitmap[pixel / bpi] >> (bpp * (pixel % bpi)));
 	uint color_off = tilemap_get_color(tile) * 16u;
 

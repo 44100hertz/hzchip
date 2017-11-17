@@ -29,4 +29,4 @@ struct video_mem *const video_mem();
 void video_sync();
 void video_init(void);
 void video_quit(void);
-void video_loadbmp(const char *path);
+void video_loadbmp(const char *path, unsigned int bpp);
