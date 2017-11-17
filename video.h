@@ -7,6 +7,7 @@ struct color {
 struct video_mem {
 	struct color palette[256];
 	GLuint bitmap[64*8];
+	GLuint tilemap[32*32];
 };
 
 struct video_mem *const video_mem();

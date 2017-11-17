@@ -5,8 +5,8 @@
 #include "video.h"
 #include "file.h"
 
-#define RES_X 64
-#define RES_Y 64
+#define RES_X 256
+#define RES_Y 256
 
 static GLuint load_shader(const char *filename, GLenum kind);
 static struct color SDL_to_float(SDL_Color col);
@@ -16,7 +16,9 @@ static SDL_Window *window;
 
 static GLfloat verts[8] = {0, 0, RES_X, 0, 0, RES_Y, RES_X, RES_Y};
 static GLuint program, vbo;
-static GLint win_size, palette, bitmap;
+static GLint win_size, palette, bitmap, tilemap;
+
+typedef unsigned int uint;
 
 struct video_mem *const video_mem()
 {
@@ -35,6 +37,7 @@ void video_sync()
 	glUniform2f(win_size, win_w, win_h);
 	glUniform4fv(palette, 256, (GLfloat*)mem.palette);
 	glUniform1uiv(bitmap, 64*8, mem.bitmap);
+	glUniform1uiv(tilemap, 32*32, mem.tilemap);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -95,6 +98,7 @@ void video_init()
 	win_size = glGetUniformLocation(program, "win_size");
 	palette = glGetUniformLocation(program, "palette");
 	bitmap = glGetUniformLocation(program, "bitmap");
+	tilemap = glGetUniformLocation(program, "tilemap");
 }
 
 void video_quit()
@@ -114,9 +118,21 @@ void video_loadbmp(const char *path)
 		return;
 	}
 	memset(mem.bitmap, 0, sizeof(mem.bitmap));
-	for(int i=0; i<64*64; ++i) {
-		char px = *(char*)&img->pixels[i];
-		mem.bitmap[i/8] |= (px & 15) << ((i%8)*4);
+	for(unsigned i=0; i<(img->w * img->h); ++i) {
+		// Find actual x and y
+		uint x = i % img->w;
+		uint y = i / img->w;
+		// Chop image into 8-tall strips
+		x += (y/8) * img->w;
+		y %= 8;
+		// Find position within tile
+		uint pos = x%8 + y*8 + (x/8)*64;
+		// Pack into lower bit depth
+		const uint bpp = 4;
+		const uint mask = (1<<bpp)-1;
+		const uint bpi = 32/bpp; // bits per int
+		char px = ((char*)img->pixels)[i];
+		mem.bitmap[pos / bpi] |= (px & mask) << ((pos % bpi) * bpp);
 	}
 	for(int i=0; i<256; ++i) {
 		mem.palette[i] = SDL_to_float(pal->colors[i]);

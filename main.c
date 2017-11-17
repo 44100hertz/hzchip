@@ -4,17 +4,6 @@
 
 #include "video.h"
 
-static void rotate_hue(float hue)
-{
-	const float TAU_3 = acos(-1.0) * 2.0 / 3.0;
-	video_mem()->palette[0] = (struct color){
-		sin(hue + TAU_3 * 0.0) / 2.0 + 0.5,
-		sin(hue + TAU_3 * 1.0) / 2.0 + 0.5,
-		sin(hue + TAU_3 * 2.0) / 2.0 + 0.5,
-		1.0,
-	};
-}
-
 static int update_loop()
 {
 	SDL_Event e;
@@ -26,8 +15,8 @@ static int update_loop()
 		}
 	}
 
-	float hue = (float)SDL_GetTicks() / 1000.0;
-	rotate_hue(hue);
+	struct video_mem *mem = video_mem();
+	mem->tilemap[(rand()>>16) % (32*32)] = rand() % 256;
 	video_sync();
 
 	return 1;
