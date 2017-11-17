@@ -9,7 +9,7 @@
 #define RES_Y 256
 
 static GLuint load_shader(const char *filename, GLenum kind);
-static struct color SDL_to_float(SDL_Color col);
+static struct video_color SDL_to_float(SDL_Color col);
 
 static struct video_mem mem;
 static SDL_Window *window;
@@ -35,9 +35,9 @@ void video_sync()
 	glUseProgram(program);
 
 	glUniform2f(win_size, win_w, win_h);
-	glUniform4fv(palette, 256, (GLfloat*)mem.palette);
+	glUniform4fv(palette, 256, mem.palette_raw);
 	glUniform1uiv(bitmap, 64*8, mem.bitmap);
-	glUniform1uiv(tilemap, 32*32, mem.tilemap);
+	glUniform1uiv(tilemap, 32*32, mem.tiles_raw);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -139,9 +139,9 @@ void video_loadbmp(const char *path)
 	}
 }
 
-static struct color SDL_to_float(SDL_Color col)
+static struct video_color SDL_to_float(SDL_Color col)
 {
-	return (struct color){
+	return (struct video_color){
 		((GLfloat)col.r) / 256.0,
 		((GLfloat)col.g) / 256.0,
 		((GLfloat)col.b) / 256.0,

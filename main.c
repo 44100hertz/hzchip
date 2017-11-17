@@ -16,7 +16,7 @@ static int update_loop()
 	}
 
 	struct video_mem *mem = video_mem();
-	mem->tilemap[(rand()>>16) % (32*32)] = rand();
+	mem->tiles_raw[(rand()>>16) % (32*32)] = rand();
 	video_sync();
 
 	return 1;
