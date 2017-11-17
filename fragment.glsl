@@ -12,12 +12,13 @@ uniform uint bpp = 4u;
 uniform uint tilemap[map_size.x * map_size.y];
 
 // Tile memory layout:
-// ____ ____ ____ ____ __YX CCCC __II IIII
+// ____ ____ ____ __YX CCCC CCCC IIII IIII
 // XY = flip; C = color; I = index;
-uint tilemap_get_index(uint tile) { return tile & 63u; }
-uint tilemap_get_color(uint tile) { return (tile >> 16u) & 15u; }
-bool tilemap_get_flipx(uint tile) { return bool(tile & (1u << 16u)); }
-bool tilemap_get_flipy(uint tile) { return bool(tile & (1u << 17u)); }
+// Will only use as many index/color bits as possible given other info.
+uint tilemap_get_index(uint tile) { return tile % (256u / bpp); }
+uint tilemap_get_color(uint tile) { return (tile >> 16u) & ((1u << bpp) - 1u); }
+bool tilemap_get_flipx(uint tile) { return bool(tile & (1u << 20u)); }
+bool tilemap_get_flipy(uint tile) { return bool(tile & (1u << 21u)); }
 
 void main (void)  
 {

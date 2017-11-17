@@ -10,7 +10,7 @@ struct video_color {
 struct video_tile {
 	GLubyte flags;
 	GLubyte color;
-	GLshort index;
+	GLubyte index;
 };
 
 struct video_mem {

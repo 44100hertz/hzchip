@@ -112,7 +112,7 @@ void video_quit()
 {
 }
 
-void video_loadbmp(const char *path, unsigned int bpp)
+void video_loadbmp(const char *path, unsigned bpp)
 {
 	SDL_Surface *img = SDL_LoadBMP(path);
 	if(!img) {
@@ -124,13 +124,13 @@ void video_loadbmp(const char *path, unsigned int bpp)
 		fprintf(stderr, "Attempt to use non-indexed image\n");
 		return;
 	}
-	memset(mem.bitmap, 0, sizeof(mem.bitmap));
-
 	const uint mask = (1<<bpp)-1;
 	const uint bpi = 32/bpp; // bits per int
 
 	uint max = img->w * img->h;
 	uint bitmap_max = sizeof(mem.bitmap) * bpi / sizeof(*mem.bitmap);
+	printf("Loading image %s, size %d tiles, into %dbpp (max %d) tile page.",
+			path, max/64, bpp, 256/bpp);
 
 	if (max > bitmap_max) max = bitmap_max;
 	for(unsigned i=0; i<max; ++i) {
