@@ -15,6 +15,7 @@ uniform uint tilemap[map_size.x * map_size.y];
 // ____ ____ ____ __YX CCCC CCCC IIII IIII
 // XY = flip; C = color; I = index;
 // Will only use as many index/color bits as possible given other info.
+
 uint tilemap_get_index(uint tile) { return tile % (256u / bpp); }
 uint tilemap_get_color(uint tile) { return (tile >> 16u) & ((1u << bpp) - 1u); }
 bool tilemap_get_flipx(uint tile) { return bool(tile & (1u << 20u)); }
@@ -49,7 +50,7 @@ void main (void)
 	uint mask = (1u<<bpp)-1u;
 	uint bpi = 32u/bpp; // bits per int
 	uint color = mask & (bitmap[pixel / bpi] >> (bpp * (pixel % bpi)));
-	uint color_off = tilemap_get_color(tile) * 16u;
+	uint color_off = (tilemap_get_color(tile) * 16u) & 255u;
 
 	gl_FragColor = palette[color + color_off];
 }
