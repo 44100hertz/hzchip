@@ -5,16 +5,13 @@
 #include "video.h"
 #include "file.h"
 
-#define RES_X 240
-#define RES_Y 160
-
 static GLuint load_shader(const char *filename, GLenum kind);
 static struct video_color SDL_to_float(SDL_Color col);
 
 static struct video_mem mem;
 static SDL_Window *window;
 
-static GLfloat verts[8] = {0, 0, RES_X, 0, 0, RES_Y, RES_X, RES_Y};
+static GLfloat verts[8] = {-1, -1,  1, -1, -1,  1,  1,  1};
 static GLuint program, vbo;
 struct {
 	GLint win_size, viewport, scroll,
@@ -38,6 +35,12 @@ void video_sync()
 	glUseProgram(program);
 
 	glUniform2f(uniform.win_size, win_w, win_h);
+	glUniform2f(uniform.scroll, mem.x, mem.y);
+	{
+		int w = mem.w == 0 ? 256 : mem.w;
+		int h = mem.h == 0 ? 256 : mem.h;
+		glUniform2f(uniform.viewport, w, h);
+	}
 	glUniform4fv(uniform.palette, 256, mem.palette_raw);
 	glUniform1uiv(uniform.bitmap, 64*8, mem.bitmap);
 	glUniform1uiv(uniform.tilemap, 32*32, mem.tiles_raw);
@@ -58,16 +61,14 @@ void video_init()
 		 800, 600,
 		 SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
 
+	SDL_SetWindowMinimumSize(window, 64, 64);
+
 	SDL_GL_SetSwapInterval(1);
 	SDL_GLContext context = SDL_GL_CreateContext(window);
 	SDL_GL_MakeCurrent(window, context);
 
-#ifdef DEBUG
-	{
-		int v = epoxy_gl_version();
-		printf("Initialized GL Version: %d.%d\n", v/10, v%10);
-	}
-#endif
+	int v = epoxy_gl_version();
+	printf("Initialized GL Version: %d.%d\n", v/10, v%10);
 
 	program = glCreateProgram();
 	GLuint vertex = load_shader("vertex.glsl", GL_VERTEX_SHADER);
@@ -90,11 +91,6 @@ void video_init()
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 
-#ifdef DEBUG
-	GLenum err = glGetError();
-	if(err) printf("%x\n", err);
-#endif
-
 #define U(name) uniform. name = glGetUniformLocation(program, #name)
 	U(win_size);
 	U(viewport);
@@ -104,8 +100,6 @@ void video_init()
 	U(bpp);
 	U(tilemap);
 #undef U
-
-	glUniform2f(uniform.viewport, RES_X, RES_Y);
 }
 
 void video_quit()

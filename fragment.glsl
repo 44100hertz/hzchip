@@ -25,9 +25,9 @@ bool tilemap_get_flipy(uint tile) { return bool(tile & (1u << 21u)); }
 void main (void)  
 {
 	// Divide the position input into a number of steps equal to pixel res
-	vec2 scroll_pos = gl_FragCoord.xy + mod(scroll, map_size*tile_size);
-	vec2 inv_pos    = vec2(scroll_pos.x, win_size.y - scroll_pos.y);
+	vec2 inv_pos    = vec2(gl_FragCoord.x, win_size.y - gl_FragCoord.y);
 	vec2 pixel_pos  = floor(inv_pos / win_size * viewport);
+	pixel_pos = mod(pixel_pos + scroll, map_size * tile_size);
 	vec2 pos_quant  = pixel_pos / viewport;
 
 	// Locate tile within map

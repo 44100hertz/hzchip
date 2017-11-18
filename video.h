@@ -22,11 +22,13 @@ struct video_mem {
 		struct video_tile tiles[32*32];
 		GLuint tiles_raw[32*32];
 	};
+	unsigned char x, y, w, h;
 	GLuint bitmap[64*8];
 };
 
-struct video_mem *const video_mem();
-void video_sync();
 void video_init(void);
 void video_quit(void);
+
+struct video_mem *const video_mem();
+void video_sync();
 void video_loadbmp(const char *path, unsigned int bpp);
