@@ -5,7 +5,7 @@ const uvec2 tile_size = uvec2(8u, 8u);
 const uint  tile_area = tile_size.x * tile_size.y;
 
 uniform vec2 win_size;
-uniform vec2 viewport = vec2(256, 224);
+uniform vec2 viewport;
 uniform vec2 scroll;
 uniform vec4 palette[256];
 uniform uint bitmap[8*8*8];
@@ -13,7 +13,7 @@ uniform uint bpp = 4u;
 uniform uint tilemap[map_size.x * map_size.y];
 
 // Tile memory layout:
-// ____ ____ ____ __YX CCCC CCCC IIII IIII
+// ____ ____ ____ __YX ____ CCCC IIII IIII
 // XY = flip; C = color; I = index;
 // Will only use as many index/color bits as possible given other info.
 

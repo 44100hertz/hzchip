@@ -3,8 +3,8 @@ CFLAGS:=-std=c99 -Wall -Wno-char-subscripts $(CFLAGS)
 
 all:
 	mkdir -p bin/
-	clang *.c $(CFLAGS) $(LFLAGS) -O2 -o bin/test
+	clang main.c hz/*.c $(CFLAGS) -O2 $(LFLAGS) -o bin/test
 
 debug:
 	mkdir -p bin/
-	clang *.c $(CFLAGS) -DDEBUG -g $(LFLAGS) -o bin/test
+	clang main.c hz/*.c $(CFLAGS) -DDEBUG $(LFLAGS) -o bin/test

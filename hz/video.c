@@ -6,9 +6,9 @@
 #include "file.h"
 
 static GLuint load_shader(const char *filename, GLenum kind);
-static struct video_color SDL_to_float(SDL_Color col);
+static struct hz_vcolor SDL_to_float(SDL_Color col);
 
-static struct video_mem mem;
+static struct hz_vmem mem;
 static SDL_Window *window;
 
 static GLfloat verts[8] = {-1, -1,  1, -1, -1,  1,  1,  1};
@@ -20,12 +20,12 @@ struct {
 
 typedef unsigned int uint;
 
-struct video_mem *const video_mem()
+struct hz_vmem *const hz_vmem()
 {
 	return &mem;
 }
 
-void video_sync()
+void hz_vsync()
 {
 	int win_w, win_h;
 
@@ -46,7 +46,7 @@ void video_sync()
 	SDL_GL_SwapWindow(window);
 }
 
-void video_init()
+void hz_vinit()
 {
 	SDL_InitSubSystem(SDL_INIT_VIDEO);
 	memset(&mem, 0, sizeof(mem));
@@ -96,11 +96,11 @@ void video_init()
 #undef U
 }
 
-void video_quit()
+void hz_vquit()
 {
 }
 
-void video_loadbmp(const char *path, unsigned bpp)
+void hz_vloadbmp(const char *path, unsigned bpp)
 {
 	// bpp is limited to 1, 2, 4, and 8.
 	if(bpp == 0 || (8/bpp)*bpp != 8) {
@@ -146,9 +146,9 @@ void video_loadbmp(const char *path, unsigned bpp)
 	glUniform1ui(uniform.bpp, bpp);
 }
 
-static struct video_color SDL_to_float(SDL_Color col)
+static struct hz_vcolor SDL_to_float(SDL_Color col)
 {
-	return (struct video_color){
+	return (struct hz_vcolor){
 		((GLfloat)col.r) / 256.0,
 		((GLfloat)col.g) / 256.0,
 		((GLfloat)col.b) / 256.0,
