@@ -25,7 +25,7 @@ static int update_loop()
 int main() {
 	SDL_Init(0);
 	video_init();
-	video_loadbmp("res/text1.bmp", 4);
+	video_loadbmp("res/text.bmp", 2);
 	while (update_loop()) {}
 	video_quit();
 	SDL_Quit();

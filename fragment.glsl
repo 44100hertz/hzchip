@@ -2,6 +2,7 @@
 
 const uvec2 map_size  = uvec2(32u, 32u);
 const uvec2 tile_size = uvec2(8u, 8u);
+const uint  tile_area = tile_size.x * tile_size.y;
 
 uniform vec2 win_size;
 uniform vec2 viewport = vec2(256, 224);
@@ -17,7 +18,7 @@ uniform uint tilemap[map_size.x * map_size.y];
 // Will only use as many index/color bits as possible given other info.
 
 uint tilemap_get_index(uint tile) { return tile % (256u / bpp); }
-uint tilemap_get_color(uint tile) { return (tile >> 16u) & ((1u << bpp) - 1u); }
+uint tilemap_get_color(uint tile) { return (tile >> 16u) & 15u; }
 bool tilemap_get_flipx(uint tile) { return bool(tile & (1u << 20u)); }
 bool tilemap_get_flipy(uint tile) { return bool(tile & (1u << 21u)); }
 
@@ -42,9 +43,8 @@ void main (void)
 	if (tilemap_get_flipy(tile)) {
 		intile_pos.y = tile_size.y - intile_pos.y - 1u;
 	}
-	uint intile = uint(intile_pos.x + intile_pos.y * tile_size.x);
-	uint tile_area = tile_size.x * tile_size.y;
-	uint pixel = tilemap_get_index(tile) * tile_area + intile;
+	uint intile    = uint(intile_pos.x + intile_pos.y * tile_size.x);
+	uint pixel     = tilemap_get_index(tile) * tile_area + intile;
 
 	// Unpack pixel from low-depth data
 	uint mask = (1u<<bpp)-1u;
