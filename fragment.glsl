@@ -47,8 +47,8 @@ void main (void)
 	uint pixel     = tilemap_get_index(tile) * tile_area + intile;
 
 	// Unpack pixel from low-depth data
-	uint mask = (1u<<bpp)-1u;
-	uint bpi = 32u/bpp; // bits per int
+	uint mask  = (1u<<bpp)-1u;
+	uint bpi   = 32u/bpp; // bits per int
 	uint color = mask & (bitmap[pixel / bpi] >> (bpp * (pixel % bpi)));
 	uint color_off = (tilemap_get_color(tile) * 16u) & 255u;
 

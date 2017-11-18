@@ -36,11 +36,7 @@ void video_sync()
 
 	glUniform2f(uniform.win_size, win_w, win_h);
 	glUniform2f(uniform.scroll, mem.x, mem.y);
-	{
-		int w = mem.w == 0 ? 256 : mem.w;
-		int h = mem.h == 0 ? 256 : mem.h;
-		glUniform2f(uniform.viewport, w, h);
-	}
+	glUniform2f(uniform.viewport, (mem.w-1 & 255)+1, (mem.h-1 & 255)+1);
 	glUniform4fv (uniform.palette, 256,   (GLfloat*)mem.palette);
 	glUniform1uiv(uniform.bitmap,  64*8,  mem.bitmap);
 	glUniform1uiv(uniform.tilemap, 32*32, (GLuint*)mem.tiles);
