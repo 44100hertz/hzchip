@@ -18,8 +18,6 @@ struct {
 	      palette, bitmap, bpp, tilemap;
 } uniform;
 
-typedef unsigned int uint;
-
 struct hz_vmem *const hz_vmem()
 {
 	return &mem;
@@ -34,12 +32,12 @@ void hz_vsync()
 
 	glUseProgram(program);
 
-	glUniform2f(uniform.win_size, win_w, win_h);
-	glUniform2f(uniform.scroll, mem.x, mem.y);
-	glUniform2f(uniform.viewport, (mem.w-1 & 255)+1, (mem.h-1 & 255)+1);
-	glUniform4fv (uniform.palette, 256,   (GLfloat*)mem.palette);
-	glUniform1uiv(uniform.bitmap,  64*8,  mem.bitmap);
-	glUniform1uiv(uniform.tilemap, 32*32, (GLuint*)mem.tiles);
+	glUniform2f  (uniform.win_size, win_w, win_h);
+	glUniform2f  (uniform.scroll,   mem.x, mem.y);
+	glUniform2f  (uniform.viewport, (mem.w-1 & 255)+1, (mem.h-1 & 255)+1);
+	glUniform4fv (uniform.palette,  256,   (GLfloat*)mem.palette);
+	glUniform1uiv(uniform.bitmap,   64*8,  mem.bitmap);
+	glUniform1uiv(uniform.tilemap,  32*32, (GLuint*)mem.tiles);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -118,24 +116,24 @@ void hz_vloadbmp(const char *path, unsigned bpp)
 		fprintf(stderr, "Attempt to use non-indexed image\n");
 		return;
 	}
-	const uint mask = (1<<bpp)-1;
-	const uint bpi = 32/bpp; // bits per int
+	const GLuint mask = (1<<bpp)-1;
+	const GLuint bpi = 32/bpp; // bits per int
 
-	uint max = img->w * img->h;
-	uint bitmap_max = sizeof(mem.bitmap) * bpi / sizeof(*mem.bitmap);
+	GLuint max = img->w * img->h;
+	GLuint bitmap_max = sizeof(mem.bitmap) * bpi / sizeof(*mem.bitmap);
 	printf("Loading image %s, size %d tiles, into %dbpp (max %d) tile page.\n",
 			path, max/64, bpp, 256/bpp);
 
 	if (max > bitmap_max) max = bitmap_max;
 	for(unsigned i=0; i<max; ++i) {
 		// Find actual x and y
-		uint x = i % img->w;
-		uint y = i / img->w;
+		GLuint x = i % img->w;
+		GLuint y = i / img->w;
 		// Chop image into 8-tall strips
 		x += (y/8) * img->w;
 		y %= 8;
 		// Find position within tile
-		uint pos = x%8 + y*8 + (x/8)*64;
+		GLuint pos = x%8 + y*8 + (x/8)*64;
 		// Pack into lower bit depth
 		char px = ((char*)img->pixels)[i];
 		mem.bitmap[pos / bpi] |= (px & mask) << ((pos % bpi) * bpp);
