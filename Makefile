@@ -1,10 +1,9 @@
-LFLAGS=-lm -lepoxy -lGL -lSDL2
-CFLAGS:=-std=c99 -Wall -Wno-char-subscripts $(CFLAGS)
+LFLAGS=-lm -lepoxy -lGL -lSDL2 -L./hz -lhzchip
+CFLAGS:=-std=c99 -Wall -Wno-char-subscripts -O2 $(CFLAGS)
 
 all:
 	mkdir -p bin/
-	clang main.c hz/*.c $(CFLAGS) -O2 $(LFLAGS) -o bin/test
-
-debug:
-	mkdir -p bin/
-	clang main.c hz/*.c $(CFLAGS) -DDEBUG $(LFLAGS) -o bin/test
+	cd hz/; \
+		clang -c *.c $(CFLAGS); \
+		ar -rs libhzchip.a *.o
+	clang main.c $(CFLAGS) $(LFLAGS) -o bin/test
