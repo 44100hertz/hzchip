@@ -41,9 +41,9 @@ void video_sync()
 		int h = mem.h == 0 ? 256 : mem.h;
 		glUniform2f(uniform.viewport, w, h);
 	}
-	glUniform4fv(uniform.palette, 256, mem.palette_raw);
-	glUniform1uiv(uniform.bitmap, 64*8, mem.bitmap);
-	glUniform1uiv(uniform.tilemap, 32*32, mem.tiles_raw);
+	glUniform4fv (uniform.palette, 256,   (GLfloat*)mem.palette);
+	glUniform1uiv(uniform.bitmap,  64*8,  mem.bitmap);
+	glUniform1uiv(uniform.tilemap, 32*32, (GLuint*)mem.tiles);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -58,10 +58,8 @@ void video_init()
 	window = SDL_CreateWindow(
 		 "it works",
 		 SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-		 800, 600,
+		 512, 512,
 		 SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
-
-	SDL_SetWindowMinimumSize(window, 64, 64);
 
 	SDL_GL_SetSwapInterval(1);
 	SDL_GLContext context = SDL_GL_CreateContext(window);

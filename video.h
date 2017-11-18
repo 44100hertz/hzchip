@@ -8,20 +8,15 @@ struct video_color {
 };
 
 struct video_tile {
+	GLubyte pad;
 	GLubyte flags;
 	GLubyte color;
 	GLubyte index;
 };
 
 struct video_mem {
-	union {
-		struct video_color palette[256];
-		GLfloat palette_raw[256*4];
-	};
-	union {
-		struct video_tile tiles[32*32];
-		GLuint tiles_raw[32*32];
-	};
+	struct video_color palette[256];
+	struct video_tile tiles[32*32];
 	unsigned char x, y, w, h;
 	GLuint bitmap[64*8];
 };
