@@ -114,6 +114,12 @@ void video_quit()
 
 void video_loadbmp(const char *path, unsigned bpp)
 {
+	// bpp is limited to 1, 2, 4, and 8.
+	if(bpp == 0 || (8/bpp)*bpp != 8) {
+		fprintf(stderr, "Attempt to use not evenly divisible depth\n"
+				"Falling back on 4bpp.\n");
+		bpp = 4;
+	}
 	SDL_Surface *img = SDL_LoadBMP(path);
 	if(!img) {
 		fprintf(stderr, "%s", SDL_GetError());
@@ -129,7 +135,7 @@ void video_loadbmp(const char *path, unsigned bpp)
 
 	uint max = img->w * img->h;
 	uint bitmap_max = sizeof(mem.bitmap) * bpi / sizeof(*mem.bitmap);
-	printf("Loading image %s, size %d tiles, into %dbpp (max %d) tile page.",
+	printf("Loading image %s, size %d tiles, into %dbpp (max %d) tile page.\n",
 			path, max/64, bpp, 256/bpp);
 
 	if (max > bitmap_max) max = bitmap_max;
