@@ -7,6 +7,10 @@ const char *file_to_string(const char *filename)
 {
 	// count lines
 	FILE *f = fopen(filename, "r");
+	if(!f) {
+		fprintf(stderr, "Could not open file: %s", filename);
+		return NULL;
+	}
 	fseek(f, 0, SEEK_END);
 	size_t size = ftell(f);
 	rewind(f);

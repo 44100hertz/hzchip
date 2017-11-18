@@ -158,7 +158,12 @@ static struct hz_vcolor SDL_to_float(SDL_Color col)
 
 static GLuint load_shader(const char *filename, GLenum kind)
 {
-	const char *source = file_to_string(filename);
+	const char root[] = "hz/";
+	char *path = malloc(strlen(path) + strlen(filename) - 1);
+	memcpy(path, root, sizeof(root));
+	strcat(path, filename);
+	const char *source = file_to_string(path);
+	free(path);
 
 	GLuint shader = glCreateShader(kind);
 	glShaderSource(shader, 1, &source, NULL);
