@@ -1,11 +1,10 @@
 //#include <epoxy/gl.h>
 
-#define HZ_VFLAG_FLIPX 1
-#define HZ_VFLAG_FLIPY 2
+#define HZ_VFLAG_FLIPX (1<<5)
+#define HZ_VFLAG_FLIPY (1<<6)
 
 struct hz_vtile {
-	GLushort flags; // Currently X and Y flip
-	GLubyte  color; // Up to 16; offsets color index by 16
+	GLubyte  color; // Only bottom 4 indices are used; top is flags
 	GLubyte  index; // Index in tilemap
 };
 
