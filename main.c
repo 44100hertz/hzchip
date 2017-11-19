@@ -17,7 +17,7 @@ static int update_loop()
 
 	struct hz_vmem *mem = hz_vmem();
 	int tile = rand();
-	mem->tiles[(rand()>>16) % (32*32)] = *(struct hz_vtile*)&tile;
+	mem->map[(rand()>>16) % (HZ_VMAP_AREA)] = *(struct hz_vtile*)&tile;
 	hz_vsync();
 
 	return 1;

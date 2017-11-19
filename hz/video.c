@@ -39,7 +39,7 @@ void hz_vsync()
 	glUniform2f  (uniform.viewport, (mem.w-1 & 255)+1, (mem.h-1 & 255)+1);
 	glUniform1uiv(uniform.palette,  HZ_VPAL_INTS, (GLuint*)mem.palette);
 	glUniform1uiv(uniform.bitmap,   HZ_VPAGE_INTS, mem.bitmap);
-	glUniform1uiv(uniform.tilemap,  HZ_VMAP_INTS, (GLuint*)mem.tiles);
+	glUniform1uiv(uniform.tilemap,  HZ_VMAP_INTS, (GLuint*)mem.map);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -50,6 +50,11 @@ void hz_vinit()
 {
 	SDL_InitSubSystem(SDL_INIT_VIDEO);
 	memset(&mem, 0, sizeof(mem));
+
+	// Hacks until I get better memory alloc model
+	mem.palette = calloc(HZ_VPAL_SIZE, 1);
+	mem.map     = calloc(HZ_VMAP_SIZE, 1);
+	mem.bitmap  = calloc(HZ_VPAGE_SIZE, 1);
 
 	window = SDL_CreateWindow(
 		 "it works",
@@ -118,12 +123,12 @@ GLuint hz_vloadbmp(const char *path, GLubyte bpp)
 		fprintf(stderr, "Attempt to use non-indexed image\n");
 		return 0;
 	}
-	const GLuint bpi = 32 / bpp; // bits per int
+	const GLuint ppi = 32 / bpp; // pixels per int
 
 	GLuint isize = img->w * img->h;
-	GLuint bitmap_max = sizeof(mem.bitmap) * bpi / sizeof(*mem.bitmap);
+	GLuint bitmap_max = HZ_VPAGE_BITS / bpp;
 	printf("Loading image %s, size %d tiles, into %dbpp (max %d) tile page.\n",
-			path, isize / HZ_VTILE_SIZE, bpp, HZ_VTILES_PER_PAGE / bpp);
+			path, isize / HZ_VTILE_AREA, bpp, bitmap_max / HZ_VTILE_AREA);
 
 	GLuint max = MIN(isize, bitmap_max);
 	for(unsigned i=0; i<max; ++i) {
@@ -134,13 +139,11 @@ GLuint hz_vloadbmp(const char *path, GLubyte bpp)
 		x += (y/HZ_VTILE_H) * img->w;
 		y %= HZ_VTILE_H;
 		// Find position within tile
-		GLuint pos = x % HZ_VTILE_W + y * HZ_VTILE_H + (x / HZ_VTILE_W) * HZ_VTILE_SIZE;
+		GLuint pos = x % HZ_VTILE_W + y * HZ_VTILE_H + (x / HZ_VTILE_W) * HZ_VTILE_AREA;
 		// Pack into lower bit depth
 		char px = ((char*)img->pixels)[i];
-		{
-			const GLuint mask = (1<<bpp)-1;
-			mem.bitmap[pos / bpi] |= (px & mask) << ((pos % bpi) * bpp);
-		}
+		const GLuint mask = (1<<bpp)-1;
+		((GLuint*)mem.bitmap)[pos / ppi] |= (px & mask) << ((pos % ppi) * bpp);
 	}
 	for(int i=0; i<256; ++i) {
 		mem.palette[i] = (struct hz_vcolor){
@@ -151,6 +154,8 @@ GLuint hz_vloadbmp(const char *path, GLubyte bpp)
 		};
 	}
 	glUniform1ui(uniform.bpp, bpp);
+
+	SDL_FreeSurface(img);
 
 	return isize;
 }
