@@ -9,7 +9,7 @@ struct hz_vtile {
 };
 
 struct hz_vcolor {
-	GLfloat r, g, b, a;
+	GLbyte r, g, b, a;
 };
 
 struct hz_vmem {

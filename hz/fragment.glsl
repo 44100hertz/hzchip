@@ -7,7 +7,7 @@ const uint  tile_area = tile_size.x * tile_size.y;
 uniform vec2 win_size;
 uniform vec2 viewport;
 uniform vec2 scroll;
-uniform vec4 palette[256];
+uniform uint palette[256];
 uniform uint bitmap[8*8*8];
 uniform uint bpp = 4u;
 uniform uint tilemap[32*32/2];
@@ -23,6 +23,11 @@ uint tilemap_get_index(uint tile) { return tile % (256u / bpp); }
 uint tilemap_get_color(uint tile) { return (tile >> 8u) & 15u; }
 bool tilemap_get_flipx(uint tile) { return bool(tile & (1u << 12u)); }
 bool tilemap_get_flipy(uint tile) { return bool(tile & (1u << 13u)); }
+vec4 color_to_float(uint color)
+{
+	uvec4 ret = 255u & uvec4(color, color >> 8u, color >> 16u, color >> 24u);
+	return vec4(ret) / 256.0;
+}
 
 void main (void)  
 {
@@ -53,7 +58,8 @@ void main (void)
 	uint c_mask  = (1u << bpp) - 1u;
 	uint bpi   = 32u/bpp; // bits per int
 	uint color = c_mask & (bitmap[pixel / bpi] >> (bpp * (pixel % bpi)));
-	uint color_off = (tilemap_get_color(tile) * 16u) & 255u;
+	uint color_off = tilemap_get_color(tile) * 16u;
 
-	gl_FragColor = palette[color + color_off];
+	uint ucolor = palette[color + color_off & 255u];
+	gl_FragColor = color_to_float(ucolor);
 }

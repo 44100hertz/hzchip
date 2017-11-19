@@ -6,7 +6,6 @@
 #include "file.h"
 
 static GLuint load_shader(const char *filename, GLenum kind);
-static struct hz_vcolor SDL_to_float(SDL_Color col);
 
 static struct hz_vmem mem;
 static SDL_Window *window;
@@ -35,7 +34,7 @@ void hz_vsync()
 	glUniform2f  (uniform.win_size, win_w, win_h);
 	glUniform2f  (uniform.scroll,   mem.x, mem.y);
 	glUniform2f  (uniform.viewport, (mem.w-1 & 255)+1, (mem.h-1 & 255)+1);
-	glUniform4fv (uniform.palette,  256,   (GLfloat*)mem.palette);
+	glUniform1uiv(uniform.palette,  256,   (GLuint*)mem.palette);
 	glUniform1uiv(uniform.bitmap,   64*8,  mem.bitmap);
 	glUniform1uiv(uniform.tilemap,  32*32, (GLuint*)mem.tiles);
 
@@ -139,19 +138,14 @@ void hz_vloadbmp(const char *path, unsigned bpp)
 		mem.bitmap[pos / bpi] |= (px & mask) << ((pos % bpi) * bpp);
 	}
 	for(int i=0; i<256; ++i) {
-		mem.palette[i] = SDL_to_float(pal->colors[i]);
+		mem.palette[i] = (struct hz_vcolor){
+			pal->colors[i].r,
+			pal->colors[i].g,
+			pal->colors[i].b,
+			pal->colors[i].a,
+		};
 	}
 	glUniform1ui(uniform.bpp, bpp);
-}
-
-static struct hz_vcolor SDL_to_float(SDL_Color col)
-{
-	return (struct hz_vcolor){
-		((GLfloat)col.r) / 256.0,
-		((GLfloat)col.g) / 256.0,
-		((GLfloat)col.b) / 256.0,
-		((GLfloat)col.a) / 256.0,
-	};
 }
 
 static GLuint load_shader(const char *filename, GLenum kind)
