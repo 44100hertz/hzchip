@@ -9,7 +9,6 @@
 
 static GLuint load_shader(const char *filename, GLenum kind);
 
-static struct hz_vmem mem;
 static SDL_Window *window;
 
 static const GLfloat verts[8] = {-1, -1,  1, -1, -1,  1,  1,  1};
@@ -19,12 +18,7 @@ struct {
 	      palette, bitmap, bpp, tilemap;
 } uniform;
 
-struct hz_vmem *const hz_vmem()
-{
-	return &mem;
-}
-
-void hz_vsync()
+void hz_vsync(const struct hz_vmem *mem)
 {
 	int win_w, win_h;
 
@@ -34,12 +28,12 @@ void hz_vsync()
 	glUseProgram(program);
 
 	glUniform2f  (uniform.win_size, win_w, win_h);
-	glUniform2f  (uniform.scroll,   mem.x, mem.y);
+	glUniform2f  (uniform.scroll,   mem->x, mem->y);
 	// (x-1&255)+1 is a bit hack to map 0 to 256
-	glUniform2f  (uniform.viewport, (mem.w-1 & 255)+1, (mem.h-1 & 255)+1);
-	glUniform1uiv(uniform.palette,  HZ_VPAL_INTS, (GLuint*)mem.palette);
-	glUniform1uiv(uniform.bitmap,   HZ_VPAGE_INTS, mem.bitmap);
-	glUniform1uiv(uniform.tilemap,  HZ_VMAP_INTS, (GLuint*)mem.map);
+	glUniform2f  (uniform.viewport, (mem->w-1 & 255)+1, (mem->h-1 & 255)+1);
+	glUniform1uiv(uniform.palette,  HZ_VPAL_INTS, (GLuint*)mem->palette);
+	glUniform1uiv(uniform.bitmap,   HZ_VPAGE_INTS, mem->bitmap);
+	glUniform1uiv(uniform.tilemap,  HZ_VMAP_INTS, (GLuint*)mem->map);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -49,12 +43,7 @@ void hz_vsync()
 void hz_vinit()
 {
 	SDL_InitSubSystem(SDL_INIT_VIDEO);
-	memset(&mem, 0, sizeof(mem));
-
 	// Hacks until I get better memory alloc model
-	mem.palette = calloc(HZ_VPAL_SIZE, 1);
-	mem.map     = calloc(HZ_VMAP_SIZE, 1);
-	mem.bitmap  = calloc(HZ_VPAGE_SIZE, 1);
 
 	window = SDL_CreateWindow(
 		 "it works",
@@ -103,12 +92,18 @@ void hz_vinit()
 
 void hz_vquit()
 {
-	free(mem.bitmap);
-	free(mem.map);
-	free(mem.palette);
 }
 
-GLuint hz_vloadbmp(const char *path, GLubyte bpp)
+struct hz_vmem *hz_vmem_default()
+{
+	struct hz_vmem *mem = calloc(1, sizeof(struct hz_vmem));
+	mem->palette = calloc(1, HZ_VPAL_SIZE);
+	mem->map     = calloc(1, HZ_VMAP_SIZE);
+	mem->bitmap  = calloc(1, HZ_VPAGE_SIZE);
+	return mem;
+}
+
+GLuint hz_vloadbmp(struct hz_vmem *mem, const char *path, GLubyte bpp)
 {
 	// bpp is limited to 1, 2, 4, and 8.
 	if(bpp == 0 || (HZ_VMAX_BPP / bpp)*bpp != HZ_VMAX_BPP) {
@@ -146,10 +141,10 @@ GLuint hz_vloadbmp(const char *path, GLubyte bpp)
 		// Pack into lower bit depth
 		char px = ((char*)img->pixels)[i];
 		const GLuint mask = (1<<bpp)-1;
-		((GLuint*)mem.bitmap)[pos / ppi] |= (px & mask) << ((pos % ppi) * bpp);
+		((GLuint*)mem->bitmap)[pos / ppi] |= (px & mask) << ((pos % ppi) * bpp);
 	}
 	for(int i=0; i<256; ++i) {
-		mem.palette[i] = (struct hz_vcolor){
+		mem->palette[i] = (struct hz_vcolor){
 			pal->colors[i].r,
 			pal->colors[i].g,
 			pal->colors[i].b,

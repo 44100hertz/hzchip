@@ -4,6 +4,8 @@
 
 #include "hz/video.h"
 
+static struct hz_vmem *mem;
+
 static int update_loop()
 {
 	SDL_Event e;
@@ -15,10 +17,9 @@ static int update_loop()
 		}
 	}
 
-	struct hz_vmem *mem = hz_vmem();
 	int tile = rand();
 	mem->map[(rand()>>16) % (HZ_VMAP_AREA)] = *(struct hz_vtile*)&tile;
-	hz_vsync();
+	hz_vsync(mem);
 
 	return 1;
 }
@@ -26,7 +27,8 @@ static int update_loop()
 int main() {
 	SDL_Init(0);
 	hz_vinit();
-	hz_vloadbmp("res/text.bmp", 2);
+	mem = hz_vmem_default();
+	hz_vloadbmp(mem, "res/text.bmp", 2);
 	while (update_loop()) {}
 	hz_vquit();
 	SDL_Quit();

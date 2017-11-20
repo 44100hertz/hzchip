@@ -49,6 +49,6 @@ struct hz_vmem {
 
 void hz_vinit(void);
 void hz_vquit(void);
-struct hz_vmem *const hz_vmem();
-void hz_vsync();
-GLuint hz_vloadbmp(const char *path, GLubyte bpp);
+void hz_vsync(const struct hz_vmem *mem);
+struct hz_vmem *hz_vmem_default();
+GLuint hz_vloadbmp(struct hz_vmem *mem, const char *path, GLubyte bpp);
