@@ -160,7 +160,7 @@ GLuint hz_vloadbmp(const char *path, GLubyte bpp)
 
 	SDL_FreeSurface(img);
 
-	return isize;
+	return max;
 }
 
 static GLuint load_shader(const char *filename, GLenum kind)

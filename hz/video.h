@@ -6,25 +6,21 @@ enum {
 	HZ_VNUM_COLORS = 1 << HZ_VMAX_BPP,
 	HZ_VPAL_SIZE = HZ_VNUM_COLORS * 4,
 	HZ_VPAL_INTS = HZ_VPAL_SIZE,
-
 	// Bitmap page
 	HZ_VPAGE_BITS = 128*128,
 	HZ_VPAGE_SIZE = HZ_VPAGE_BITS / 8,
 	HZ_VPAGE_INTS = HZ_VPAGE_SIZE / 4,
-
 	// Individual tiles
 	HZ_VTILE_W = 8,
 	HZ_VTILE_H = 8,
 	HZ_VTILE_AREA = HZ_VTILE_W * HZ_VTILE_H,
 	HZ_VTILE_SIZE = HZ_VTILE_AREA / 8,
-
 	// Tilemap; each tile is 16 bits
 	HZ_VMAP_W = 32,
 	HZ_VMAP_H = 32,
 	HZ_VMAP_AREA = HZ_VMAP_W * HZ_VMAP_H,
 	HZ_VMAP_SIZE = HZ_VMAP_AREA * 2, // two bytes
 	HZ_VMAP_INTS = HZ_VMAP_AREA / 2, // ... is half an int
-
 	// Flags (upper bits of vtile color)
 	HZ_VFLAG_FLIPX = 1<<4,
 	HZ_VFLAG_FLIPY = 1<<5,
@@ -32,18 +28,16 @@ enum {
 	HZ_VFLAG_UNUSED2 = 1<<7,
 };
 
-struct hz_vtile {
-	GLubyte color; // Only bottom 4 indices are used; top is flags
-	GLubyte index; // Index in tilemap
-};
-
-struct hz_vcolor {
-	GLbyte r, g, b, a;
-};
-
+// The video memory. Editing it directly is the intended way here, but do know that these pointers expect to see HZ_VTILE_SIZE, HZ_VMAP_SIZE, or HZ_VCOLOR_SIZE of memory.
+// By default, these point to allocated placeholder values.
 struct hz_vmem {
-	struct hz_vcolor *palette;
-	struct hz_vtile *map;
+	struct hz_vcolor {
+		GLbyte r, g, b, a;
+	} *palette;
+	struct hz_vtile {
+		GLubyte color; // Only bottom 4 indices are used; top is flags
+		GLubyte index; // Index in tilemap
+	} *map;
 	// x and y are scroll position.
 	// w and h are viewport size; a size of 0 will be used as 256.
 	GLubyte x, y, w, h;
@@ -55,7 +49,6 @@ struct hz_vmem {
 
 void hz_vinit(void);
 void hz_vquit(void);
-
 struct hz_vmem *const hz_vmem();
 void hz_vsync();
 GLuint hz_vloadbmp(const char *path, GLubyte bpp);
