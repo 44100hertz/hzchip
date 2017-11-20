@@ -1,31 +1,31 @@
 //#include <epoxy/gl.h>
 
 enum {
-	// Tile sizes in pixels
-	HZ_VTILE_W = 8,
-	HZ_VTILE_H = 8,
-	HZ_VTILE_AREA = HZ_VTILE_W * HZ_VTILE_H,
-	HZ_VTILE_SIZE = HZ_VTILE_AREA / 8,
-
-	// Color
+	// Colors
 	HZ_VMAX_BPP  = 8,
 	HZ_VNUM_COLORS = 1 << HZ_VMAX_BPP,
 	HZ_VPAL_SIZE = HZ_VNUM_COLORS * 4,
 	HZ_VPAL_INTS = HZ_VPAL_SIZE,
 
-	// Size of bitmap page in bits
+	// Bitmap page
 	HZ_VPAGE_BITS = 128*128,
 	HZ_VPAGE_SIZE = HZ_VPAGE_BITS / 8,
 	HZ_VPAGE_INTS = HZ_VPAGE_SIZE / 4,
 
-	// Size of tilemap in tiles
+	// Individual tiles
+	HZ_VTILE_W = 8,
+	HZ_VTILE_H = 8,
+	HZ_VTILE_AREA = HZ_VTILE_W * HZ_VTILE_H,
+	HZ_VTILE_SIZE = HZ_VTILE_AREA / 8,
+
+	// Tilemap; each tile is 16 bits
 	HZ_VMAP_W = 32,
 	HZ_VMAP_H = 32,
 	HZ_VMAP_AREA = HZ_VMAP_W * HZ_VMAP_H,
-	HZ_VMAP_SIZE = HZ_VMAP_AREA * 2,
-	HZ_VMAP_INTS = HZ_VMAP_AREA / 2, // Tiles are 16 bits; half an int
+	HZ_VMAP_SIZE = HZ_VMAP_AREA * 2, // two bytes
+	HZ_VMAP_INTS = HZ_VMAP_AREA / 2, // ... is half an int
 
-	// Video flags (upper bits of color)
+	// Flags (upper bits of vtile color)
 	HZ_VFLAG_FLIPX = 1<<4,
 	HZ_VFLAG_FLIPY = 1<<5,
 	HZ_VFLAG_UNUSED1 = 1<<6,

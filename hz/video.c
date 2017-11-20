@@ -103,6 +103,9 @@ void hz_vinit()
 
 void hz_vquit()
 {
+	free(mem.bitmap);
+	free(mem.map);
+	free(mem.palette);
 }
 
 GLuint hz_vloadbmp(const char *path, GLubyte bpp)
