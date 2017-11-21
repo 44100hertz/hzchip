@@ -107,27 +107,29 @@ struct hz_vmem *hz_vmem_default()
 	return mem;
 }
 
-struct hz_vbitmap *hz_vloadbmp(const char *path, GLubyte bpp)
+void hz_vloadbmp(struct hz_vbitmap* bitmap, const char *path)
 {
-	check_bpp(&bpp);
+	check_bpp(&bitmap->bpp);
+	const GLbyte bpp = bitmap->bpp;
+
 	SDL_Surface *img = SDL_LoadBMP(path);
 	if(!img) {
 		fprintf(stderr, "%s", SDL_GetError());
-		return NULL;
+		return;
 	}
 	SDL_Palette *pal = img->format->palette;
 	if(!pal) {
 		fprintf(stderr, "Attempt to use non-indexed image\n");
-		return NULL;
+		return;
 	}
 	GLuint isize = img->w * img->h;
 	printf("Loading image %s, size %d tiles, as %dbpp\n",
 			path, isize / HZ_VTILE_AREA, bpp);
 
-	struct hz_vbitmap *bitmap = malloc(sizeof(*bitmap));
-	bitmap->size = isize * bpp / 8;
-	bitmap->bpp = bpp;
-	bitmap->bitmap = calloc(bitmap->size, 1);
+	size_t oldsize = bitmap->size;
+	bitmap->size  += isize * bpp / 8;
+	bitmap->bitmap = realloc(bitmap->bitmap, bitmap->size);
+	memset(bitmap->bitmap + oldsize, 0, bitmap->size - oldsize);
 
 	for(unsigned i=0; i<isize; ++i) {
 		// Find actual x and y
@@ -151,8 +153,6 @@ struct hz_vbitmap *hz_vloadbmp(const char *path, GLubyte bpp)
 	}
 
 	SDL_FreeSurface(img);
-
-	return bitmap;
 }
 
 static GLuint load_shader(const char *filename, GLenum kind)
@@ -187,7 +187,11 @@ static GLuint load_shader(const char *filename, GLenum kind)
 static void check_bpp(GLubyte *bpp)
 {
 	GLubyte b = *bpp;
-	if(b == 0 || (HZ_VMAX_BPP / b)*b != HZ_VMAX_BPP) {
+	if(b == 0) {
+		puts("Uninitialized bpp; setting to 4bpp");
+		*bpp = 4;
+	}
+	if((HZ_VMAX_BPP/b)*b != HZ_VMAX_BPP) {
 		fprintf(stderr, "Attempt to use depth that does not divide %d evenly.\n"
 				"Falling back on 4bpp.\n", HZ_VMAX_BPP);
 		*bpp = 4;
