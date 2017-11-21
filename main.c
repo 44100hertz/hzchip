@@ -4,8 +4,8 @@
 
 #include "hz/video.h"
 
-static struct hz_vmem mem = {0};
-struct hz_vbitmap bmp = {0};
+static struct hz_vmem mem;
+struct hz_vbitmap bmp;
 
 static int update_loop()
 {
@@ -38,7 +38,7 @@ static int update_loop()
 int main() {
 	SDL_Init(0);
 	hz_vinit();
-	bmp.bpp = 8;
+	bmp = hz_vbitmap_new(8);
 	hz_vloadbmp(&bmp, "res/text.bmp");
 	mem.palette = bmp.palette;
 	mem.bitmap  = bmp.bitmap;

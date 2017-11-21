@@ -63,4 +63,5 @@ void hz_vinit(void);
 void hz_vquit(void);
 void hz_vsync(struct hz_vmem *mem);
 struct hz_vmem *hz_vmem_default();
+struct hz_vbitmap hz_vbitmap_new(GLubyte bpp);
 void hz_vloadbmp(struct hz_vbitmap* bitmap, const char *path);

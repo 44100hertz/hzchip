@@ -1,5 +1,5 @@
 LFLAGS=-lm -lepoxy -lGL -lSDL2 -L./hz -lhzchip
-CFLAGS:=-std=c99 -Wall -O2 -Wno-missing-braces $(CFLAGS)
+CFLAGS:=-std=c99 -Wall -O2 $(CFLAGS)
 
 LIB=bin/libhzchip.a
 

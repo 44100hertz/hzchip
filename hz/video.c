@@ -107,11 +107,19 @@ struct hz_vmem *hz_vmem_default()
 	return mem;
 }
 
+
+struct hz_vbitmap hz_vbitmap_new(GLubyte bpp)
+{
+	check_bpp(&bpp);
+	struct hz_vbitmap bitmap;
+	memset(&bitmap, 0, sizeof(bitmap));
+	bitmap.bpp = bpp;
+	return bitmap;
+}
+
 void hz_vloadbmp(struct hz_vbitmap* bitmap, const char *path)
 {
-	check_bpp(&bitmap->bpp);
 	const GLbyte bpp = bitmap->bpp;
-
 	SDL_Surface *img = SDL_LoadBMP(path);
 	if(!img) {
 		fprintf(stderr, "%s", SDL_GetError());
