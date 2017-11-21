@@ -37,7 +37,6 @@ struct hz_vtile {
 };
 
 // The video memory. Editing it directly is the intended way here, but do know that these pointers expect to see HZ_VTILE_SIZE, HZ_VMAP_SIZE, or HZ_VCOLOR_SIZE of memory.
-// By default, these point to allocated placeholder values.
 struct hz_vmem {
 	// x and y are scroll position.
 	// w and h are viewport size; a size of 0 will be used as 256.
@@ -49,7 +48,7 @@ struct hz_vmem {
 	// Tiles are packed into this memory; less bpp = can store more.
 	void *bitmap;
 	struct hz_vcolor *palette;
-	struct hz_vtile *map;
+	struct hz_vtile *tilemap;
 };
 
 struct hz_vbitmap {
@@ -62,6 +61,5 @@ struct hz_vbitmap {
 void hz_vinit(void);
 void hz_vquit(void);
 void hz_vsync(struct hz_vmem *mem);
-struct hz_vmem *hz_vmem_default();
 struct hz_vbitmap hz_vbitmap_new(GLubyte bpp);
 void hz_vloadbmp(struct hz_vbitmap* bitmap, const char *path);

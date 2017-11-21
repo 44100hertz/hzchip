@@ -21,6 +21,9 @@ static struct {
 
 void hz_vsync(struct hz_vmem *mem)
 {
+	assert(mem->palette);
+	assert(mem->bitmap);
+	assert(mem->tilemap);
 	check_bpp(&mem->bpp);
 
 	int win_w, win_h;
@@ -36,7 +39,7 @@ void hz_vsync(struct hz_vmem *mem)
 	glUniform2f  (uniform.viewport, (mem->w-1 & 255)+1, (mem->h-1 & 255)+1);
 	glUniform1uiv(uniform.palette,  HZ_VPAL_INTS, (GLuint*)mem->palette);
 	glUniform1uiv(uniform.bitmap,   HZ_VPAGE_INTS, mem->bitmap);
-	glUniform1uiv(uniform.tilemap,	HZ_VMAP_INTS, (GLuint*)mem->map);
+	glUniform1uiv(uniform.tilemap,	HZ_VMAP_INTS, (GLuint*)mem->tilemap);
 	glUniform1ui (uniform.bpp,	mem->bpp);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -97,16 +100,6 @@ void hz_vinit()
 void hz_vquit()
 {
 }
-
-struct hz_vmem *hz_vmem_default()
-{
-	struct hz_vmem *mem = calloc(1, sizeof(struct hz_vmem));
-	mem->palette = calloc(1, HZ_VPAL_SIZE);
-	mem->map     = calloc(1, HZ_VMAP_SIZE);
-	mem->bitmap  = calloc(1, HZ_VPAGE_SIZE);
-	return mem;
-}
-
 
 struct hz_vbitmap hz_vbitmap_new(GLubyte bpp)
 {
