@@ -28,27 +28,39 @@ enum {
 	HZ_VFLAG_UNUSED2 = 1<<7,
 };
 
+struct hz_vcolor {
+	GLbyte r, g, b, a;
+};
+struct hz_vtile {
+	GLubyte color; // Only bottom 4 indices are used; top is flags
+	GLubyte index; // Index in tilemap
+};
+
 // The video memory. Editing it directly is the intended way here, but do know that these pointers expect to see HZ_VTILE_SIZE, HZ_VMAP_SIZE, or HZ_VCOLOR_SIZE of memory.
 // By default, these point to allocated placeholder values.
 struct hz_vmem {
-	struct hz_vcolor {
-		GLbyte r, g, b, a;
-	} *palette;
-	struct hz_vtile {
-		GLubyte color; // Only bottom 4 indices are used; top is flags
-		GLubyte index; // Index in tilemap
-	} *map;
 	// x and y are scroll position.
 	// w and h are viewport size; a size of 0 will be used as 256.
 	GLubyte x, y, w, h;
+	// Bits per pixel; valid values 1, 2, 4, 8
+	GLubyte bpp;
 	// The bitmap is laid out so that tiles are continuous.
 	// Each tile is 8x8; at 4bpp that's 8 ints (32 bytes) per tile.
 	// Tiles are packed into this memory; less bpp = can store more.
+	void *bitmap;
+	struct hz_vcolor *palette;
+	struct hz_vtile *map;
+};
+
+struct hz_vbitmap {
+	struct hz_vcolor palette[HZ_VNUM_COLORS];
+	GLubyte bpp;
+	size_t size;
 	void *bitmap;
 };
 
 void hz_vinit(void);
 void hz_vquit(void);
-void hz_vsync(const struct hz_vmem *mem);
+void hz_vsync(struct hz_vmem *mem);
 struct hz_vmem *hz_vmem_default();
-GLuint hz_vloadbmp(struct hz_vmem *mem, const char *path, GLubyte bpp);
+struct hz_vbitmap *hz_vloadbmp(const char *path, GLubyte bpp);

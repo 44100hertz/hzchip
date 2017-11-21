@@ -8,18 +8,21 @@
 #define MIN(a, b) a < b ? a : b
 
 static GLuint load_shader(const char *filename, GLenum kind);
+static void check_bpp(GLubyte *bpp);
 
 static SDL_Window *window;
 
 static const GLfloat verts[8] = {-1, -1,  1, -1, -1,  1,  1,  1};
 static GLuint program, vbo;
-struct {
+static struct {
 	GLint win_size, viewport, scroll,
 	      palette, bitmap, bpp, tilemap;
 } uniform;
 
-void hz_vsync(const struct hz_vmem *mem)
+void hz_vsync(struct hz_vmem *mem)
 {
+	check_bpp(&mem->bpp);
+
 	int win_w, win_h;
 
 	SDL_GetWindowSize(window, &win_w, &win_h);
@@ -33,7 +36,8 @@ void hz_vsync(const struct hz_vmem *mem)
 	glUniform2f  (uniform.viewport, (mem->w-1 & 255)+1, (mem->h-1 & 255)+1);
 	glUniform1uiv(uniform.palette,  HZ_VPAL_INTS, (GLuint*)mem->palette);
 	glUniform1uiv(uniform.bitmap,   HZ_VPAGE_INTS, mem->bitmap);
-	glUniform1uiv(uniform.tilemap,  HZ_VMAP_INTS, (GLuint*)mem->map);
+	glUniform1uiv(uniform.tilemap,	HZ_VMAP_INTS, (GLuint*)mem->map);
+	glUniform1ui (uniform.bpp,	mem->bpp);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -103,33 +107,29 @@ struct hz_vmem *hz_vmem_default()
 	return mem;
 }
 
-GLuint hz_vloadbmp(struct hz_vmem *mem, const char *path, GLubyte bpp)
+struct hz_vbitmap *hz_vloadbmp(const char *path, GLubyte bpp)
 {
-	// bpp is limited to 1, 2, 4, and 8.
-	if(bpp == 0 || (HZ_VMAX_BPP / bpp)*bpp != HZ_VMAX_BPP) {
-		fprintf(stderr, "Attempt to use depth that does not divide %d evenly.\n"
-				"Falling back on 4bpp.\n", HZ_VMAX_BPP);
-		bpp = 4;
-	}
+	check_bpp(&bpp);
 	SDL_Surface *img = SDL_LoadBMP(path);
 	if(!img) {
 		fprintf(stderr, "%s", SDL_GetError());
-		return 0;
+		return NULL;
 	}
 	SDL_Palette *pal = img->format->palette;
 	if(!pal) {
 		fprintf(stderr, "Attempt to use non-indexed image\n");
-		return 0;
+		return NULL;
 	}
-	const GLuint ppi = 32 / bpp; // pixels per int
-
 	GLuint isize = img->w * img->h;
-	GLuint bitmap_max = HZ_VPAGE_BITS / bpp;
-	printf("Loading image %s, size %d tiles, into %dbpp (max %d) tile page.\n",
-			path, isize / HZ_VTILE_AREA, bpp, bitmap_max / HZ_VTILE_AREA);
+	printf("Loading image %s, size %d tiles, as %dbpp\n",
+			path, isize / HZ_VTILE_AREA, bpp);
 
-	GLuint max = MIN(isize, bitmap_max);
-	for(unsigned i=0; i<max; ++i) {
+	struct hz_vbitmap *bitmap = malloc(sizeof(*bitmap));
+	bitmap->size = isize * bpp / 8;
+	bitmap->bpp = bpp;
+	bitmap->bitmap = calloc(bitmap->size, 1);
+
+	for(unsigned i=0; i<isize; ++i) {
 		// Find actual x and y
 		GLuint x = i % img->w;
 		GLuint y = i / img->w;
@@ -141,21 +141,18 @@ GLuint hz_vloadbmp(struct hz_vmem *mem, const char *path, GLubyte bpp)
 		// Pack into lower bit depth
 		char px = ((char*)img->pixels)[i];
 		const GLuint mask = (1<<bpp)-1;
-		((GLuint*)mem->bitmap)[pos / ppi] |= (px & mask) << ((pos % ppi) * bpp);
+		GLbyte *b = bitmap->bitmap;
+		const GLuint bp8 = 8/bpp;
+		b[pos / bp8] |= (px & mask) << ((pos % bp8) * bpp);
 	}
 	for(int i=0; i<256; ++i) {
-		mem->palette[i] = (struct hz_vcolor){
-			pal->colors[i].r,
-			pal->colors[i].g,
-			pal->colors[i].b,
-			pal->colors[i].a,
-		};
+		SDL_Color c = pal->colors[i];
+		bitmap->palette[i] = (struct hz_vcolor){c.r, c.g, c.b, c.a};
 	}
-	glUniform1ui(uniform.bpp, bpp);
 
 	SDL_FreeSurface(img);
 
-	return max;
+	return bitmap;
 }
 
 static GLuint load_shader(const char *filename, GLenum kind)
@@ -185,4 +182,14 @@ static GLuint load_shader(const char *filename, GLenum kind)
 	}
 
 	return compiled ? shader : 0;
+}
+
+static void check_bpp(GLubyte *bpp)
+{
+	GLubyte b = *bpp;
+	if(b == 0 || (HZ_VMAX_BPP / b)*b != HZ_VMAX_BPP) {
+		fprintf(stderr, "Attempt to use depth that does not divide %d evenly.\n"
+				"Falling back on 4bpp.\n", HZ_VMAX_BPP);
+		*bpp = 4;
+	}
 }
