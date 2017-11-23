@@ -11,9 +11,8 @@ struct hz_vbitmap bmp;
 static void set_amem(struct hz_amem *mem, void *data)
 {
 	static int note = 40<<8;
-	mem->tick_rate = 60;
-	mem->voices.vol = 0x80;
-	mem->voices.pitch = (note += 20);
+	mem->voices[0].vol = 0x80;
+	mem->voices[0].pitch = (note += 20);
 }
 
 static int update_loop()
@@ -36,7 +35,8 @@ static int update_loop()
 		int tile = rand();
 		mem.tilemap[(rand()>>16) % (HZ_VMAP_AREA)] = *(struct hz_vtile*)&tile;
 	}
-	hz_vsync(&mem);
+	hz_vdraw_tiles(&mem);
+	hz_vsync();
 	hz_aupdate(set_amem, 0);
 
 	return 1;
@@ -45,7 +45,7 @@ static int update_loop()
 int main() {
 	SDL_Init(0);
 	hz_vinit();
-	hz_ainit();
+	hz_ainit(60);
 
 	bmp = hz_vbitmap_new(2);
 	hz_vloadbmp(&bmp, "res/text.bmp");
@@ -53,7 +53,9 @@ int main() {
 	mem.bitmap  = bmp.bitmap;
 	mem.bpp     = bmp.bpp;
 	mem.tilemap = calloc(HZ_VMAP_SIZE, 1);
+
 	while (update_loop()) {}
+
 	hz_vquit();
 	SDL_Quit();
 }

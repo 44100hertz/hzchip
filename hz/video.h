@@ -60,6 +60,7 @@ struct hz_vbitmap {
 
 void hz_vinit(void);
 void hz_vquit(void);
-void hz_vsync(struct hz_vmem *mem);
+void hz_vdraw_tiles(struct hz_vmem *mem);
+void hz_vsync();
 struct hz_vbitmap hz_vbitmap_new(GLubyte bpp);
 void hz_vloadbmp(struct hz_vbitmap* bitmap, const char *path);

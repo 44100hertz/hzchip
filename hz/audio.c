@@ -11,8 +11,8 @@ static int srate;
 static struct hz_amem static_mem;
 
 enum {
-	SINE_BITS = 8, // size of sine table
-	WAVE_BITS = SINE_BITS + 2, // size of one sine period
+	SINE_BITS = 8,
+	WAVE_BITS = SINE_BITS + 2,
 	SINE_SIZE = (1 << SINE_BITS),
 	WAVE_SIZE = (1 << WAVE_BITS),
 };
@@ -20,9 +20,11 @@ enum {
 struct {
 	uint16_t sample_count;
 	uint16_t next_tick;
-	uint16_t phase;
-	uint16_t phase_inc;
-	// The first 1/4 of a sine wave
+	struct imem_voice {
+		uint16_t phase;
+		uint16_t phase_inc;
+	} voices[HZ_VOICES];
+	// The first 1/4 of a sine wave, later reconstructed into full wave.
 	uint8_t sine[SINE_SIZE];
 } imem;
 
@@ -75,9 +77,13 @@ static void tick(struct hz_amem *mem)
 {
 	assert(mem->tick_rate);
 	imem.next_tick += srate / mem->tick_rate;
-	const double pitch = (double)mem->voices.pitch / 256.0;
-	const double offset = (pitch - 60.0) / 12.0;
-	imem.phase_inc = (1<<15) * 440.0 * pow(2.0, offset) / srate;
+	for(int i=0; i<HZ_VOICES; ++i) {
+		struct imem_voice *const iv = imem.voices+i;
+		struct hz_voice *const v = mem->voices+i;
+		const double pitch = (double)v->pitch / 256.0;
+		const double offset = (pitch - 60.0) / 12.0;
+		iv->phase_inc = (1<<15) * 440.0 * pow(2.0, offset) / srate;
+	}
 }
 
 static void callback(void *data, Uint8 *raw_stream, int len)
@@ -97,9 +103,13 @@ static void callback(void *data, Uint8 *raw_stream, int len)
 			SDL_UnlockMutex(lock);
 		}
 		int16_t total = 0;
-		total += get_wave(HZ_QSINE, imem.phase) * mem.voices.vol;
+		for(int i=0; i<HZ_VOICES; ++i) {
+			struct imem_voice *const iv = imem.voices+i;
+			struct hz_voice *const v = mem.voices+i;
+			total += get_wave(v->wave, iv->phase) * v->vol;
+			iv->phase += iv->phase_inc;
+		}
 		stream[i] = total;
-		imem.phase += imem.phase_inc;
 	}
 }
 

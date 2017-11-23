@@ -19,7 +19,7 @@ static struct {
 	      palette, bitmap, bpp, tilemap;
 } uniform;
 
-void hz_vsync(struct hz_vmem *mem)
+void hz_vdraw_tiles(struct hz_vmem *mem)
 {
 	assert(mem->palette);
 	assert(mem->bitmap);
@@ -27,7 +27,6 @@ void hz_vsync(struct hz_vmem *mem)
 	check_bpp(&mem->bpp);
 
 	int win_w, win_h;
-
 	SDL_GetWindowSize(window, &win_w, &win_h);
 	glViewport(0, 0, win_w, win_h);
 
@@ -44,6 +43,10 @@ void hz_vsync(struct hz_vmem *mem)
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+}
+
+void hz_vsync()
+{
 	SDL_GL_SwapWindow(window);
 }
 
