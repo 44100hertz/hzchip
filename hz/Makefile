@@ -1,5 +1,5 @@
 LIB=libhzchip.a
-CFLAGS:=-std=c99 -Wall -Wextra -Wno-char-subscripts -O2 $(CFLAGS)
+CFLAGS:=-std=c99 -Wall -Wno-char-subscripts -O2 -lm $(CFLAGS)
 
 static:
 	clang -c *.c $(CFLAGS)

@@ -5,7 +5,7 @@
 
 const char *file_to_string(const char *filename)
 {
-	// count lines
+	/* count lines */
 	FILE *f = fopen(filename, "r");
 	if(!f) {
 		fprintf(stderr, "Could not open file: %s", filename);

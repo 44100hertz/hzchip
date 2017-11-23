@@ -3,9 +3,18 @@
 #include <math.h>
 
 #include "hz/video.h"
+#include "hz/audio.h"
 
 static struct hz_vmem mem;
 struct hz_vbitmap bmp;
+
+static void set_amem(struct hz_amem *mem, void *data)
+{
+	static int note = 40<<8;
+	mem->tick_rate = 60;
+	mem->voices.vol = 0x80;
+	mem->voices.pitch = (note += 20);
+}
 
 static int update_loop()
 {
@@ -28,6 +37,7 @@ static int update_loop()
 		mem.tilemap[(rand()>>16) % (HZ_VMAP_AREA)] = *(struct hz_vtile*)&tile;
 	}
 	hz_vsync(&mem);
+	hz_aupdate(set_amem, 0);
 
 	return 1;
 }
@@ -35,6 +45,8 @@ static int update_loop()
 int main() {
 	SDL_Init(0);
 	hz_vinit();
+	hz_ainit();
+
 	bmp = hz_vbitmap_new(2);
 	hz_vloadbmp(&bmp, "res/text.bmp");
 	mem.palette = bmp.palette;
