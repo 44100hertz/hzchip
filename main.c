@@ -10,9 +10,10 @@ struct hz_vbitmap bmp;
 
 static void set_amem(struct hz_amem *mem, void *data)
 {
-	static int note = 40<<8;
-	mem->voices[0].vol = 0x80;
+	static int note = 40 << 8;
+	mem->voices[0].wave = HZ_TRI;
 	mem->voices[0].pitch = (note += 20);
+	mem->voices[0].vol = 0x80;
 }
 
 static int update_loop()

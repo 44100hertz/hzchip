@@ -4,7 +4,7 @@
 
 #include "audio.h"
 
-static int16_t get_wave(char wave, uint16_t index);
+static int16_t get_wave(char wave_type, uint16_t phase);
 
 static SDL_mutex *lock;
 static int srate;
@@ -13,8 +13,8 @@ static struct hz_amem static_mem;
 enum {
 	SINE_BITS = 8,
 	WAVE_BITS = SINE_BITS + 2,
-	SINE_SIZE = (1 << SINE_BITS),
-	WAVE_SIZE = (1 << WAVE_BITS),
+	SINE_SIZE = 1 << SINE_BITS,
+	WAVE_SIZE = 1 << WAVE_BITS,
 };
 
 struct {
@@ -113,13 +113,20 @@ static void callback(void *data, Uint8 *raw_stream, int len)
 	}
 }
 
-static int16_t get_wave(char wave_type, uint16_t index) {
-	index >>= 16 - WAVE_BITS;
+// Returns a 9-bit wave to be multiplied by volume.
+static int16_t get_wave(char wave_type, uint16_t phase) {
+	const int16_t index = phase >> (16 - WAVE_BITS);
 	const int16_t flipx = index & (1 << (WAVE_BITS - 2));
 	const int16_t flipy = index & (1 << (WAVE_BITS - 1));
 	const uint8_t pos = flipx ? SINE_SIZE - index - 1 : index;
 	const uint8_t wave = imem.sine[pos];
 	switch (wave_type) {
+	case HZ_SAW:
+		return (int16_t)phase >> 7;
+	case HZ_TRI:
+		return pos;
+	case HZ_PULSE:
+		return flipy ? -UINT8_MAX : UINT8_MAX;
 	case HZ_SINE:
 		return flipy ? -wave : wave;
 	case HZ_HSINE:
@@ -127,7 +134,7 @@ static int16_t get_wave(char wave_type, uint16_t index) {
 	case HZ_DSINE:
 		return wave;
 	case HZ_QSINE:
-		return flipx || flipy ? 0 : wave;
+		return flipx ? 0 : wave;
 	default:
 		return 0;
 	}

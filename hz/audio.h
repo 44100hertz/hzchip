@@ -1,21 +1,26 @@
 /* #include <stdint.h> */
 
 enum {
-	HZ_SINE,
-	HZ_HSINE,
-	HZ_DSINE,
-	HZ_QSINE,
+	HZ_SAW,   // /|/|
+	HZ_TRI,   // ^v^v
+	HZ_PULSE, // -_-_
+	HZ_SINE,  // nunu
+	HZ_HSINE, // n_n_
+	HZ_DSINE, // nnnn
+	HZ_QSINE, // r_r_
 };
 
 enum {
-	HZ_VOICES = 64,
+	HZ_VOICES = 4096,
 };
 
 struct hz_voice {
 	uint8_t vol;
 	uint8_t wave;
+	uint8_t flags;
 	union {
 		struct { uint8_t tune, note; };
+		struct { uint8_t index; };
 		uint16_t pitch;
 	};
 };
