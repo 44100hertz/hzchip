@@ -35,7 +35,7 @@ void hz_vdraw_tiles(struct hz_vmem *mem)
 	glUniform2f  (uniform.win_size, win_w, win_h);
 	glUniform2f  (uniform.scroll,   mem->x, mem->y);
 	// (x-1&255)+1 is a bit hack to map 0 to 256
-	glUniform2f  (uniform.viewport, (mem->w-1 & 255)+1, (mem->h-1 & 255)+1);
+	glUniform2f  (uniform.viewport, ((mem->w-1) & 255)+1, ((mem->h-1) & 255)+1);
 	glUniform1uiv(uniform.palette,  HZ_VPAL_INTS, (GLuint*)mem->palette);
 	glUniform1uiv(uniform.bitmap,   HZ_VPAGE_INTS, mem->bitmap);
 	glUniform1uiv(uniform.tilemap,	HZ_VMAP_INTS, (GLuint*)mem->tilemap);
@@ -162,7 +162,7 @@ void hz_vloadbmp(struct hz_vbitmap* bitmap, const char *path)
 static GLuint load_shader(const char *filename, GLenum kind)
 {
 	const char root[] = "hz/";
-	char *path = malloc(strlen(path) + strlen(filename) - 1);
+	char *path = malloc(strlen(root) + strlen(filename) - 1);
 	memcpy(path, root, sizeof(root));
 	strcat(path, filename);
 	const char *source = file_to_string(path);
